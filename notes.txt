@@ -1,0 +1,35 @@
+PS B:\Web Development and Projects\AeroVista Productions - Website_VER2> git init
+PS B:\Web Development and Projects\AeroVista Productions - Website_VER2> git add .
+PS B:\Web Development and Projects\AeroVista Productions - Website_VER2> git commit -am "initial commit from VS Code"
+PS B:\Web Development and Projects\AeroVista Productions - Website_VER2> git push origin Main-Branch
+error: src refspec Main-Branch does not match any
+error: failed to push some refs to 'origin'
+PS B:\Web Development and Projects\AeroVista Productions - Website_VER2> git remote add origin https://github.com/tvremine/aerovistaproductions.git
+PS B:\Web Development and Projects\AeroVista Productions - Website_VER2> git push origin Main-Branch
+error: src refspec Main-Branch does not match any
+error: failed to push some refs to 'https://github.com/tvremine/aerovistaproductions.git'
+PS B:\Web Development and Projects\AeroVista Productions - Website_VER2> git push origin master     
+remote: Invalid username or password.
+fatal: Authentication failed for 'https://github.com/tvremine/aerovistaproductions.git/'
+PS B:\Web Development and Projects\AeroVista Productions - Website_VER2> git push origin master
+fatal: Authentication failed for 'https://github.com/tvremine/aerovistaproductions.git/'
+PS B:\Web Development and Projects\AeroVista Productions - Website_VER2> git push origin master
+info: please complete authentication in your browser...
+fatal: Authentication failed for 'https://github.com/tvremine/aerovistaproductions.git/'
+PS B:\Web Development and Projects\AeroVista Productions - Website_VER2> git push origin master
+PS B:\Web Development and Projects\AeroVista Productions - Website_VER2> git push origin master
+info: please complete authentication in your browser...
+Enumerating objects: 13, done.
+Counting objects: 100% (13/13), done.
+Delta compression using up to 12 threads
+Compressing objects: 100% (12/12), done.
+Writing objects: 100% (13/13), 3.96 MiB | 2.13 MiB/s, done.
+Total 13 (delta 0), reused 0 (delta 0), pack-reused 0
+remote:
+remote: Create a pull request for 'master' on GitHub by visiting:
+remote:      https://github.com/tvremine/aerovistaproductions/pull/new/master
+remote:
+To https://github.com/tvremine/aerovistaproductions.git
+ * [new branch]      master -> master
+PS B:\Web Development and Projects\AeroVista Productions - Website_VER2>
+
