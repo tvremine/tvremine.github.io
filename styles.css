@@ -28,6 +28,7 @@ body {
   display: flex;
   flex-direction: column;
   margin: 0;
+  background-color: var(--background-color);
 }
 
 h2 {
@@ -192,8 +193,6 @@ p {
     height: 50vh;
     font-size: 1.6rem;
   }
-
-  /* .navbar-menu.active:: */
 
   #navbar-logo {
     padding-left: 25px;
