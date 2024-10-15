@@ -11,10 +11,11 @@
       href="https://fonts.googleapis.com/css2?family=Kumbh+Sans:wght@100..900&display=swap"
       rel="stylesheet"
     />
+    <link rel="icon" href="images/drone-icon.ico" type="image/png" />
   </head>
   <body>
     <!------------------------ NAVBAR SECTION  ------------------------>
-
+    <div id="home"></div>
     <nav class="navbar">
       <div class="navbar-container">
         <a href="index.html" id="navbar-logo"
@@ -33,19 +34,16 @@
         </div>
         <ul class="navbar-menu">
           <li class="navbar-item">
-            <a href="#" class="navbar-links">Home</a>
+            <a href="#home" class="navbar-links">Home</a>
           </li>
           <li class="navbar-item">
-            <a href="#" class="navbar-links">Services</a>
+            <a href="#services" class="navbar-links">Services</a>
           </li>
           <li class="navbar-item">
-            <a href="#" class="navbar-links">About</a>
+            <a href="#about" class="navbar-links">About</a>
           </li>
           <li class="navbar-item">
-            <a href="#" class="navbar-links">Contact</a>
-          </li>
-          <li class="navbar-button">
-            <a href="#" class="button"> Home </a>
+            <a href="#footer" class="navbar-links">Contact</a>
           </li>
         </ul>
       </div>
@@ -58,7 +56,7 @@
           <h1>AEROVISTA PRODUCTIONS</h1>
           <h2>AERIAL IMAGERY & POST-PRODUCTION</h2>
           <p>Your gateway to aerial excellence.</p>
-          <button class="main-button"><a href="#">Get Started</a></button>
+          <!-- <button class="main-button"><a href="#">Get Started</a></button> -->
         </div>
         <div class="main-image-container">
           <img
@@ -67,33 +65,77 @@
             id="main-image"
           />
         </div>
+        <div id="services"></div>
       </div>
     </div>
 
     <!------------------------ SERVICES SECTION  ------------------------>
+
     <div class="services">
-      <h1>See what the hype is about</h1>
+      <h1>Services Provided</h1>
       <div class="services-container">
         <div class="services-card">
-          <h2>Experience bliss</h2>
-          <p>AI Powered Technology</p>
+          <h2>Aerial Photography & Videography</h2>
+          <p>Your space, your memories</p>
           <button>Get Started</button>
         </div>
         <div class="services-card">
-          <h2>Are you ready?</h2>
-          <p>Take the leap</p>
+          <h2>Construction & Site Inspections</h2>
+          <p>Aerial oversight, grounded results</p>
           <button>Get Started</button>
         </div>
         <div class="services-card">
-          <h2>Are you ready?</h2>
-          <p>Take the leap</p>
+          <h2>Real Estate & Venue Imagery</h2>
+          <p>Skyline your listing</p>
           <button>Get Started</button>
+        </div>
+      </div>
+    </div>
+
+    <!------------------------ ABOUT SECTION  ------------------------>
+
+    <div class="about">
+      <!-- <video
+        id="video-bg"
+        class="video-bg"
+        src="images/Aerial Clip Main H264 quality Least with Transition.mp4"
+        autoplay
+        loop
+        muted
+      ></video> -->
+      <div id="about"></div>
+      <h1>About the Operation</h1>
+      <div class="about-container">
+        <div class="about-card">
+          <h2>Remote sUAS Pilot</h2>
+          <p>FAA Part 107 Certified</p>
+          <button class="main-button">
+            <a
+              href="https://www.ecfr.gov/current/title-14/chapter-I/subchapter-F/part-107"
+              target="_blank"
+              >Code of Federal Regulations</a
+            >
+          </button>
+        </div>
+        <div class="about-card">
+          <h2>Indoor & Outdoor Operations</h2>
+          <p>We help you determine flight readiness</p>
+          <button>Get Started</button>
+        </div>
+        <div class="about-card">
+          <h2>LAANC Auto Approval</h2>
+          <p>Request to fly in controlled airspace</p>
+          <button class="main-button">
+            <a href="https://www.faa.gov/uas/getting_started/laanc"
+              >What is LAANC</a
+            >
+          </button>
         </div>
       </div>
     </div>
 
     <!------------------------ FOOTER SECTION  ------------------------>
-    <div class="footer-container">
+    <div id="footer" class="footer-container">
       <div class="footer-links">
         <div class="footer-links-wrapper">
           <div class="footer-links-items">

@@ -21,11 +21,33 @@
   margin: 0;
   padding: 0;
   font-family: "Kumbh Sans", sans-serif;
+  scroll-behavior: smooth;
 }
 
 body {
   display: flex;
   flex-direction: column;
+  margin: 0;
+}
+
+h2 {
+  font-size: 1.3rem;
+  text-shadow: 2px 2px #131313;
+}
+
+p {
+  text-shadow: 2px 2px #131313;
+}
+
+#home,
+#services,
+#about,
+#footer {
+  scroll-margin-block-start: 110px;
+  /*Adds margin to the top of the viewport*/
+
+  scroll-margin-block-end: 110px;
+  /*Adds margin to the bottom of the viewport*/
 }
 
 /* ------------------- NAVBAR SECTION START ------------------- */
@@ -77,7 +99,7 @@ body {
     contrast(82%); */
   filter: var(--primary-svg-color);
   stroke-width: 10;
-  padding: 4px;
+  padding: 0px 8px;
 }
 
 .navbar-menu {
@@ -92,13 +114,20 @@ body {
 }
 
 .navbar-links {
-  color: var(--primary-text);
+  color: #f77062;
+  transition: all 0.3s ease;
   display: flex;
   align-items: center;
   justify-content: center;
   text-decoration: none;
   padding: 0 1rem;
   height: 100%;
+}
+
+.navbar-links:hover {
+  cursor: pointer;
+  background: #4837ff;
+  transition: all 0.3s ease-in-out;
 }
 
 .navbar-button {
@@ -126,11 +155,6 @@ body {
 
 .button:hover {
   background: #4837ff;
-  transition: all 0.3s ease;
-}
-
-.navbar-links {
-  color: #f77062;
   transition: all 0.3s ease;
 }
 
@@ -168,6 +192,8 @@ body {
     height: 50vh;
     font-size: 1.6rem;
   }
+
+  /* .navbar-menu.active:: */
 
   #navbar-logo {
     padding-left: 25px;
@@ -286,6 +312,7 @@ body {
   -moz-background-clip: text;
   -webkit-text-fill-color: transparent;
   -moz-text-fill-color: transparent;
+  text-shadow: none;
 }
 
 .main-content p {
@@ -421,7 +448,7 @@ body {
     #b12a5b 100%
   );
   background-size: 100%;
-  margin-bottom: 5rem;
+  margin: 2rem;
   font-size: 2.5rem;
   -webkit-background-clip: text;
   -moz-background-clip: text;
@@ -472,15 +499,14 @@ body {
 }
 
 .services h2 {
-  position: absolute;
-  top: 350px;
-  left: 30px;
+  padding-left: 10px;
+  padding-top: 350px;
 }
 
 .services-card p {
-  position: absolute;
-  top: 400px;
-  left: 30px;
+  position: relative;
+  padding-left: 10px;
+  padding-top: 20px;
 }
 
 .services-card button {
@@ -490,9 +516,12 @@ body {
   outline: none;
   border-radius: 4px;
   background: #f77062;
-  position: absolute;
+  /* position: absolute;
   top: 440px;
-  left: 30px;
+  left: 30px; */
+  position: relative;
+  margin-left: 10px;
+  margin-top: 20px;
   font-size: 1rem;
   cursor: pointer;
 }
@@ -527,10 +556,143 @@ body {
 
   .services-card {
     width: 300px;
+    /* background-size: contain;
+    background-repeat: no-repeat; */
   }
 }
 
 /* ------------------- SERVICES SECTION END ------------------- */
+
+/* ------------------- ABOUT SECTION START ------------------- */
+
+.about-card {
+  margin: 1rem;
+  height: 525px;
+  width: 400px;
+  border-radius: 4px;
+  background-image: url("/images/air3_1.jpg");
+  background-size: cover;
+  background-position: center;
+  position: relative;
+  color: var(--primary-text);
+}
+
+.about-card:nth-child(2) {
+  background-image: url("/images/air3_2.jpg");
+}
+
+.about-card:nth-child(3) {
+  background-image: url("/images/air3_3.jpg");
+}
+
+.about {
+  background: #141414;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+#video-bg {
+  position: absolute;
+  width: 100vw;
+  height: auto;
+  object-fit: cover;
+  position: fixed;
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  z-index: -5;
+}
+
+.about h1 {
+  background-color: #ff8177;
+  background-image: linear-gradient(
+    to right,
+    #ff8177 0%,
+    #ff867a 0%,
+    #ff8c7f 21%,
+    #f99185 52%,
+    #cf556c 78%,
+    #b12a5b 100%
+  );
+  background-size: 100%;
+  margin: 2rem;
+  font-size: 2.5rem;
+  -webkit-background-clip: text;
+  -moz-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  -moz-text-fill-color: transparent;
+}
+
+.about-container {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  height: auto;
+}
+
+.about h2 {
+  padding-left: 10px;
+  padding-top: 350px;
+}
+
+.about-card p {
+  position: relative;
+  padding-left: 10px;
+  padding-top: 20px;
+}
+
+.about-card button {
+  color: var(--primary-text);
+  padding: 10px 20px;
+  border: none;
+  outline: none;
+  border-radius: 4px;
+  background: #f77062;
+  /* position: absolute;
+  top: 440px;
+  left: 30px; */
+  position: relative;
+  left: 10px;
+  top: 20px;
+  font-size: 1rem;
+  cursor: pointer;
+  margin: 0;
+}
+
+/* .about-card:hover {
+  transform: scale(1.075);
+  transition: 0.2s ease-in;
+  cursor: pointer;
+} */
+
+/* ----- MAIN MOBILE RESPONSIVE ----- */
+
+@media screen and (max-width: 960px) {
+  .about {
+    height: auto;
+  }
+
+  .about h1 {
+    font-size: 2rem;
+    margin-top: 3.5rem;
+  }
+}
+
+@media screen and (max-width: 480px) {
+  .about {
+    height: auto;
+  }
+
+  .about h1 {
+    font-size: 1.2rem;
+  }
+
+  .about-card {
+    width: 300px;
+  }
+}
 
 /* ------------------- FOOTER SECTION START ------------------- */
 

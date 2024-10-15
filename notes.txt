@@ -33,3 +33,8 @@ To https://github.com/tvremine/aerovistaproductions.git
  * [new branch]      master -> master
 PS B:\Web Development and Projects\AeroVista Productions - Website_VER2>
 
+----------------------------------------
+services container needs to be convereted to flexbox
+line 436 - flex-direction column can be deleted
+lines 478-486 can be toggled back on
+----------------------------------------
