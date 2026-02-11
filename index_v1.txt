@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wedding Reservation</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; }
+        form { display: flex; flex-direction: column; }
+        .guest-fields { margin-top: 20px; }
+        .guest-row { display: flex; gap: 10px; margin-bottom: 10px; }
+        input { padding: 8px; flex: 1; }
+        button { margin-top: 20px; padding: 10px; background: #4CAF50; color: white; border: none; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <h1>Wedding Reservation</h1>
+    <p>Please fill out the form to reserve your spot.</p>
+    
+    <form id="reservationForm" action="" method="POST">
+        <label for="numGuests">Number of Guests:</label>
+        <select id="numGuests" name="numGuests">https://script.google.com/macros/s/AKfycbxD4ap18BEXOq6GZfljBU0xWkqlyD6J6FX5GY8Yx6lKwLQp5eJE7laTQaAGVyeA8rcY/exec
+            <option value="1">1</option>
+            <option value="2">2</option>
+            <option value="3">3</option>
+            <option value="4">4</option>
+            <option value="5">5</option>
+            <option value="6">6</option>
+            <option value="7">7</option>
+            <option value="8">8</option>
+            <option value="9">9</option>
+            <option value="10">10</option>
+        </select>
+        
+        <div id="guestFields" class="guest-fields"></div>
+        
+        <button type="submit">Submit</button>
+    </form>
+
+    <script>
+        const numGuestsSelect = document.getElementById('numGuests');
+        const guestFieldsDiv = document.getElementById('guestFields');
+
+        function updateGuestFields() {
+            const num = parseInt(numGuestsSelect.value);
+            guestFieldsDiv.innerHTML = ''; // Clear existing fields
+            
+            for (let i = 1; i <= num; i++) {
+                const row = document.createElement('div');
+                row.className = 'guest-row';
+                
+                const firstNameInput = document.createElement('input');
+                firstNameInput.type = 'text';
+                firstNameInput.name = `firstName${i}`;
+                firstNameInput.placeholder = `Guest ${i} First Name`;
+                firstNameInput.required = true;
+                
+                const lastNameInput = document.createElement('input');
+                lastNameInput.type = 'text';
+                lastNameInput.name = `lastName${i}`;
+                lastNameInput.placeholder = `Guest ${i} Last Name`;
+                lastNameInput.required = true;
+                
+                row.appendChild(firstNameInput);
+                row.appendChild(lastNameInput);
+                guestFieldsDiv.appendChild(row);
+            }
+        }
+
+        // Initial update
+        updateGuestFields();
+
+        // Update on change
+        numGuestsSelect.addEventListener('change', updateGuestFields);
+    </script>
+</body>
+</html>

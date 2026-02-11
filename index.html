@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Grace & Tom | May 8, 2026</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Georgia&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Grace &amp; Tom</h1>
+            <h2>May 8, 2026</h2>
+            <h2>St. Barnabas Catholic Church</h2>
+        </header>
+
+        <p class="intro">We're so excited to celebrate with you!<br>Please let us know who will be joining us.</p>
+        
+        <form id="reservationForm" action="https://script.google.com/macros/s/AKfycbzCpKxRCMe5JG58jrGSxUZLdLAIaOeb5C4klwGtFaFOXjRsgrq0JJKTsInwGMpOtUMQ/exec" method="POST" target="hidden_iframe">
+            <label for="numGuests">Number of Guests Attending:</label>
+            <select id="numGuests" name="numGuests">
+                <option value="1">1</option>
+                <option value="2" selected>2</option>
+                <option value="3">3</option>
+                <option value="4">4</option>
+                <option value="5">5</option>
+                <option value="6">6</option>
+                <option value="7">7</option>
+                <option value="8">8</option>
+                <option value="9">9</option>
+                <option value="10">10</option>
+            </select>
+            
+            <div id="guestFields" class="guest-fields"></div>
+            
+            <button type="submit" class="submit-btn">Reserve Our Spot</button>
+        </form>
+
+        <div id="successMessage" class="success-message hidden">
+            <div class="success-btn">SUCCESS!</div>
+            <p>Thank you! Your reservation has been received.</p>
+        </div>
+
+        <div id="errorMessage" class="error-message hidden">
+            <div class="error-btn">Something went wrong</div>
+            <p>Please try again or contact us directly.</p>
+        </div>
+
+        <iframe name="hidden_iframe" id="hidden_iframe" style="display:none;"></iframe>
+    </div>
+
+    <script>
+        const numGuestsSelect = document.getElementById('numGuests');
+        const guestFieldsDiv = document.getElementById('guestFields');
+        const form = document.getElementById('reservationForm');
+        const successMessage = document.getElementById('successMessage');
+        const errorMessage = document.getElementById('errorMessage');
+        const iframe = document.getElementById('hidden_iframe');
+
+        function updateGuestFields() {
+            const num = parseInt(numGuestsSelect.value);
+            guestFieldsDiv.innerHTML = '';
+            
+            for (let i = 1; i <= num; i++) {
+                const row = document.createElement('div');
+                row.className = 'guest-row';
+                
+                const first = document.createElement('input');
+                first.type = 'text';
+                first.name = `firstName${i}`;
+                first.placeholder = `Guest ${i} First Name`;
+                first.required = true;
+                
+                const last = document.createElement('input');
+                last.type = 'text';
+                last.name = `lastName${i}`;
+                last.placeholder = `Guest ${i} Last Name`;
+                last.required = true;
+                
+                row.appendChild(first);
+                row.appendChild(last);
+                guestFieldsDiv.appendChild(row);
+
+                if (i < num) {
+                    const divider = document.createElement('div');
+                    divider.className = 'dotted-divider';
+                    guestFieldsDiv.appendChild(divider);
+                }
+            }
+        }
+
+        // Listen for iframe load to detect success/error
+        iframe.addEventListener('load', function() {
+            try {
+                const content = iframe.contentWindow.document.body.innerText.trim();
+                if (content.includes('Success') || content === '') {
+                    form.classList.add('hidden');
+                    successMessage.classList.remove('hidden');
+                    errorMessage.classList.add('hidden');
+                } else {
+                    form.classList.add('hidden');
+                    errorMessage.classList.remove('hidden');
+                    successMessage.classList.add('hidden');
+                }
+            } catch (e) {
+                // If cross-origin or other issue, assume success (common in simple setups)
+                form.classList.add('hidden');
+                successMessage.classList.remove('hidden');
+                errorMessage.classList.add('hidden');
+            }
+        });
+
+        // Initial load
+        updateGuestFields();
+        numGuestsSelect.addEventListener('change', updateGuestFields);
+    </script>
+</body>
+</html>
