@@ -1,1172 +1,649 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta
-      name="viewport"
-      content="width=device-width, initial-scale=1.0, viewport-fit=cover"
-    />
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>Air360 • DJI 360 Viewer</title>
-
-    <!-- iOS PWA meta tags -->
-    <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta
-      name="apple-mobile-web-app-status-bar-style"
-      content="black-translucent"
-    />
-    <meta name="apple-mobile-web-app-title" content="Air360" />
-    <meta name="theme-color" content="#0f172a" />
-
-    <!-- Manifest for PWA -->
-    <link rel="manifest" href="manifest.json" />
-
-    <!-- Tailwind CSS Play CDN -->
+    
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Air360">
+    <meta name="theme-color" content="#0f172a">
+    <link rel="manifest" href="manifest.json">
+    
     <script src="https://cdn.tailwindcss.com"></script>
-
-    <!-- Pannellum 360° Viewer (CDN) -->
-    <link
-      rel="stylesheet"
-      href="https://cdn.jsdelivr.net/npm/pannellum@2.5.7/build/pannellum.css"
-    />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/pannellum@2.5.7/build/pannellum.css">
     <script src="https://cdn.jsdelivr.net/npm/pannellum@2.5.7/build/pannellum.js"></script>
-
+    
     <style>
-      @import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=Space+Grotesk:wght@500;600&amp;display=swap");
-
-      :root {
-        --accent: #38bdf8;
-      }
-
-      body {
-        font-family: "Inter", system_ui, sans-serif;
-      }
-
-      .font-display {
-        font-family: "Space Grotesk", "Inter", system_ui, sans-serif;
-        font-weight: 600;
-      }
-
-      .photo-card {
-        transition:
-          transform 0.2s cubic-bezier(0.4, 0, 0.2, 1),
-          box-shadow 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-        will-change: transform;
-      }
-
-      .photo-card:hover {
-        transform: translateY(-4px);
-        box-shadow:
-          0 20px 25px -5px rgb(0 0 0 / 0.1),
-          0 8px 10px -6px rgb(0 0 0 / 0.1);
-      }
-
-      .photo-card:active {
-        transform: scale(0.985);
-      }
-
-      .pannellum-container {
-        border-radius: 16px;
-        overflow: hidden;
-        background: #020617;
-      }
-
-      .modal {
-        animation: modalEnter 0.2s ease-out forwards;
-      }
-
-      @keyframes modalEnter {
-        from {
-          opacity: 0;
-          transform: translateY(20px) scale(0.98);
-        }
-        to {
-          opacity: 1;
-          transform: translateY(0) scale(1);
-        }
-      }
-
-      .360-badge {
-        background: linear-gradient(90deg, #22c55e, #16a34a);
-        box-shadow: 0 0 0 1px rgba(34, 197, 94, 0.3);
-      }
-
-      .pano-badge {
-        background: linear-gradient(90deg, #eab308, #ca8a04);
-      }
-
-      .viewer-overlay {
-        pointer-events: none;
-      }
-
-      .viewer-overlay > * {
-        pointer-events: auto;
-      }
-
-      .thumb {
-        image-rendering: crisp-edges;
-      }
-
-      .empty-state {
-        background: radial-gradient(circle at center, #1e2937 0%, #0f172a 70%);
-      }
-
-      .section-header {
-        letter-spacing: -0.025em;
-      }
-
-      /* Better mobile modal on iPhone */
-      @media (max-width: 640px) {
-        .viewer-modal-inner {
-          border-radius: 0;
-          margin: 0;
-          max-height: 100dvh;
-          height: 100dvh;
-        }
-      }
-
-      .pannellum .pnlm-controls-container {
-        display: none !important; /* We use custom controls */
-      }
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=Space+Grotesk:wght@500;600&amp;display=swap');
+        body { font-family: 'Inter', system_ui, sans-serif; }
+        .font-display { font-family: 'Space Grotesk', 'Inter', system_ui, sans-serif; font-weight: 600; }
+        .photo-card { transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.2s cubic-bezier(0.4, 0.0, 0.2, 1); }
+        .photo-card:hover { transform: translateY(-3px); }
+        .pannellum-container { border-radius: 16px; overflow: hidden; background: #020617; }
+        .modal { animation: modalEnter 0.2s ease-out forwards; }
+        @keyframes modalEnter { from { opacity: 0; transform: translateY(20px) scale(0.98); } to { opacity: 1; transform: translateY(0) scale(1); } }
+        .360-badge { background: linear-gradient(90deg, #22c55e, #16a34a); }
+        .pano-badge { background: linear-gradient(90deg, #eab308, #ca8a04); }
+        .viewer-overlay { pointer-events: none; }
+        .viewer-overlay > * { pointer-events: auto; }
+        .thumb { image-rendering: crisp-edges; }
+        .empty-state { background: radial-gradient(circle at center, #1e2937 0%, #0f172a 70%); }
+        .storage-bar { height: 4px; background: linear-gradient(to right, #38bdf8, #0ea5e9); transition: width 0.3s ease; }
     </style>
-  </head>
-  <body class="bg-slate-950 text-slate-200 min-h-screen">
+</head>
+<body class="bg-slate-950 text-slate-200 min-h-screen">
     <!-- Header -->
-    <header
-      class="border-b border-slate-800 bg-slate-950/80 backdrop-blur-lg sticky top-0 z-40"
-    >
-      <div class="max-w-6xl mx-auto px-4 sm:px-6">
-        <div class="flex items-center justify-between h-16">
-          <div class="flex items-center gap-x-3">
-            <!-- Logo -->
-            <div class="flex items-center gap-x-2.5">
-              <div
-                class="w-9 h-9 bg-sky-500 rounded-2xl flex items-center justify-center shadow-inner"
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  class="w-5 h-5 text-white"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                  stroke-width="2.25"
-                >
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    d="M3.75 4.875c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5A1.125 1.125 0 013.75 9.375v-4.5zM3.75 14.625c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5a1.125 1.125 0 01-1.125-1.125v-4.5zM13.5 4.875c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5A1.125 1.125 0 0113.5 9.375v-4.5z"
-                  />
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    d="M6.75 6.75h.75v.75h-.75V6.75zM6.75 16.5h.75v.75h-.75v-.75zM16.5 6.75h.75v.75h-.75V6.75z"
-                  />
-                </svg>
-              </div>
-              <div>
-                <span
-                  class="font-display text-2xl font-semibold tracking-tighter"
-                  >Air360</span
-                >
-                <span
-                  class="text-[10px] font-mono text-sky-500/70 tracking-[2px] block -mt-1"
-                  >DJI</span
-                >
-              </div>
-            </div>
-          </div>
-
-          <div class="flex items-center gap-x-2 text-sm">
-            <div
-              class="hidden sm:flex items-center gap-x-1.5 px-3 py-1.5 bg-slate-900 rounded-3xl border border-slate-800"
-            >
-              <div
-                class="w-2 h-2 bg-emerald-400 rounded-full animate-pulse"
-              ></div>
-              <span class="text-emerald-400 text-xs font-medium"
-                >Ready for iPhone 16 Pro</span
-              >
-            </div>
-            <a
-              href="https://github.com"
-              target="_blank"
-              class="text-slate-400 hover:text-slate-300 transition-colors p-2 rounded-xl hover:bg-slate-900"
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                class="w-4 h-4"
-                fill="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"
-                />
-              </svg>
-            </a>
-          </div>
-        </div>
-      </div>
-    </header>
-
-    <div class="max-w-6xl mx-auto px-4 sm:px-6 pt-8 pb-12">
-      <!-- Hero / Intro -->
-      <div
-        class="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-y-4 mb-8"
-      >
-        <div>
-          <h1
-            class="font-display text-4xl sm:text-5xl tracking-tighter font-semibold"
-          >
-            Your 360° moments,<br />beautifully viewed.
-          </h1>
-          <p class="mt-2 text-lg text-slate-400 max-w-md">
-            Auto-detects DJI Air 3S Sphere panoramas and gives you
-            native-feeling swipe + pinch controls on iPhone.
-          </p>
-        </div>
-
-        <div class="flex-shrink-0">
-          <div
-            class="inline-flex items-center gap-x-2 text-xs uppercase tracking-widest text-slate-500 font-medium"
-          >
-            <div class="h-px w-8 bg-slate-700"></div>
-            BUILT FOR YOU
-          </div>
-        </div>
-      </div>
-
-      <!-- Controls Bar -->
-      <div
-        class="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center mb-6"
-      >
-        <!-- Import Button -->
-        <button
-          onclick="importPhotos()"
-          class="flex-1 sm:flex-none inline-flex items-center justify-center gap-x-2.5 bg-sky-500 hover:bg-sky-600 active:bg-sky-700 transition-all text-white font-semibold px-6 h-12 rounded-3xl shadow-lg shadow-sky-500/30 text-sm"
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            class="w-5 h-5"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-            stroke-width="3"
-          >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              d="M12 4.5v15m7.5-7.5h-15"
-            />
-          </svg>
-          <span>Import Photos</span>
-        </button>
-
-        <input
-          type="file"
-          id="fileInput"
-          multiple
-          accept="image/jpeg,image/jpg,image/png,image/heic"
-          class="hidden"
-        />
-
-        <!-- Search -->
-        <div class="flex-1 relative group">
-          <div
-            class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none"
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              class="w-4 h-4 text-slate-500"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-              />
-            </svg>
-          </div>
-          <input
-            id="searchInput"
-            oninput="filterAndRender()"
-            type="text"
-            placeholder="Search filenames..."
-            class="w-full bg-slate-900 border border-slate-800 focus:border-sky-500/50 transition-colors pl-11 pr-4 h-12 rounded-3xl text-sm placeholder:text-slate-500 focus:outline-none"
-          />
-        </div>
-
-        <!-- View Mode Toggle -->
-        <div
-          class="flex-shrink-0 inline-flex rounded-3xl border border-slate-800 p-1 bg-slate-900"
-        >
-          <button
-            onclick="setViewMode('360')"
-            id="btn360"
-            class="px-5 py-2 text-sm font-medium rounded-[20px] transition-all flex items-center gap-x-1.5 bg-slate-800 text-white"
-          >
-            <span>360° Only</span>
-          </button>
-          <button
-            onclick="setViewMode('all')"
-            id="btnAll"
-            class="px-5 py-2 text-sm font-medium rounded-[20px] transition-all flex items-center gap-x-1.5 text-slate-400 hover:text-slate-200"
-          >
-            <span>All</span>
-          </button>
-        </div>
-
-        <!-- Clear -->
-        <button
-          onclick="clearAllPhotos()"
-          class="flex-shrink-0 inline-flex items-center justify-center gap-x-2 text-sm font-medium text-red-400 hover:text-red-300 hover:bg-red-950/50 transition-colors px-5 h-12 rounded-3xl border border-red-900/60"
-        >
-          Clear
-        </button>
-      </div>
-
-      <!-- Stats / Info -->
-      <div
-        id="statsBar"
-        class="hidden mb-4 text-xs text-slate-500 flex items-center gap-x-4"
-      >
-        <div id="statsText"></div>
-        <div class="flex-1 h-px bg-slate-800"></div>
-      </div>
-
-      <!-- Photo Grid -->
-      <div
-        id="photoGrid"
-        class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4"
-      >
-        <!-- Populated by JS -->
-      </div>
-
-      <!-- Empty State -->
-      <div
-        id="emptyState"
-        class="hidden empty-state rounded-3xl border border-slate-800 p-12 text-center"
-      >
-        <div
-          class="mx-auto w-16 h-16 bg-slate-800 rounded-2xl flex items-center justify-center mb-6"
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            class="w-8 h-8 text-slate-400"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-            stroke-width="1.75"
-          >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              d="M3 9a2 2 0 012-2 2 2 0 012 2m-2 2v10a2 2 0 01-2-2V9zm4 0v10a2 2 0 002 2h10a2 2 0 002-2V9a2 2 0 00-2-2m-4 0v10"
-            />
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-            />
-          </svg>
-        </div>
-        <h3 class="font-semibold text-xl tracking-tight">No 360° photos yet</h3>
-        <p class="mt-2 text-slate-400 max-w-xs mx-auto">
-          Tap <span class="font-medium text-sky-400">Import Photos</span> and
-          select your DJI Sphere panoramas from the Photos app. The app will
-          automatically detect true 360° shots.
-        </p>
-
-        <div
-          class="mt-6 text-[10px] text-slate-500 max-w-[260px] mx-auto leading-relaxed"
-        >
-          Pro tip: Use
-          <span class="font-mono bg-slate-800 px-1.5 py-px rounded"
-            >Sphere</span
-          >
-          mode in DJI Fly for full 360° stitched equirectangular images.
-        </div>
-      </div>
-    </div>
-
-    <!-- Viewer Modal -->
-    <div
-      id="viewerModal"
-      onclick="if (event.target.id === 'viewerModal') closeViewer();"
-      class="hidden fixed inset-0 z-50 bg-black/90 flex items-center justify-center p-2 sm:p-4"
-    >
-      <div
-        onclick="event.stopImmediatePropagation()"
-        class="viewer-modal-inner bg-slate-900 w-full max-w-[1100px] rounded-3xl overflow-hidden border border-slate-700 shadow-2xl flex flex-col h-[95dvh] sm:h-auto sm:max-h-[92vh]"
-      >
-        <!-- Viewer Header -->
-        <div
-          class="flex items-center justify-between px-5 py-4 border-b border-slate-800 bg-slate-950/70"
-        >
-          <div class="min-w-0 flex-1">
-            <div
-              id="viewerTitle"
-              class="font-semibold text-lg tracking-tight truncate"
-            ></div>
-            <div id="viewerMeta" class="text-xs text-slate-400 font-mono"></div>
-          </div>
-
-          <div class="flex items-center gap-x-2 flex-shrink-0">
-            <!-- Custom Controls -->
-            <button
-              onclick="resetView()"
-              class="flex items-center gap-x-1.5 text-xs font-medium px-4 h-9 rounded-2xl border border-slate-700 hover:bg-slate-800 active:bg-slate-700 transition-colors"
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                class="w-3.5 h-3.5"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                stroke-width="3"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.058 11H1M12 3v2m0 16v2m9-9H15m-6 0a8.002 8.002 0 01-1.357-1.357"
-                />
-              </svg>
-              <span class="hidden sm:inline">Reset</span>
-            </button>
-
-            <button
-              onclick="toggleAutoRotate()"
-              id="autoRotateBtn"
-              class="flex items-center gap-x-1.5 text-xs font-medium px-4 h-9 rounded-2xl border border-slate-700 hover:bg-slate-800 active:bg-slate-700 transition-colors"
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                class="w-3.5 h-3.5"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                stroke-width="2.25"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  d="M14.25 9.75L16.5 12l-2.25 2.25m-4.5 0L7.5 12l2.25-2.25M6 20.25h12A2.25 2.25 0 0020.25 18V6A2.25 2.25 0 0018 3.75H6A2.25 2.25 0 003.75 6v12A2.25 2.25 0 006 20.25z"
-                />
-              </svg>
-              <span id="autoRotateText" class="hidden sm:inline"
-                >Auto Rotate</span
-              >
-            </button>
-
-            <button
-              onclick="closeViewer()"
-              class="w-9 h-9 flex items-center justify-center text-slate-400 hover:text-white hover:bg-slate-800 rounded-2xl transition-colors"
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                class="w-5 h-5"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                stroke-width="3"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  d="M6 18L18 6M6 6h12v12"
-                />
-              </svg>
-            </button>
-          </div>
-        </div>
-
-        <!-- Pannellum Viewer -->
-        <div
-          class="flex-1 relative bg-black p-2 sm:p-3"
-          style="min-height: 320px"
-        >
-          <div
-            id="viewer"
-            class="w-full h-full rounded-2xl pannellum-container"
-          ></div>
-
-          <!-- Subtle hint overlay (fades after first interaction) -->
-          <div
-            id="viewerHint"
-            class="viewer-overlay absolute bottom-6 left-1/2 -translate-x-1/2 bg-black/60 text-white text-[10px] px-3 py-1 rounded-full flex items-center gap-x-1.5 pointer-events-none"
-          >
-            <span>Drag to look • Pinch to zoom</span>
-          </div>
-        </div>
-
-        <div
-          class="px-5 py-3 text-[10px] text-center text-slate-500 border-t border-slate-800 bg-slate-950/50"
-        >
-          Powered by Pannellum • Works best with true equirectangular 360°
-          images
-        </div>
-      </div>
-    </div>
-
-    <!-- Toast Container -->
-    <div
-      id="toastContainer"
-      class="fixed bottom-4 left-1/2 -translate-x-1/2 z-[60] flex flex-col gap-y-2 items-center"
-    ></div>
-
-    <script>
-      // Tailwind script configuration
-      function initTailwind() {
-        document.documentElement.style.setProperty("--accent", "#38bdf8");
-
-        tailwind.config = {
-          theme: {
-            extend: {
-              fontFamily: {
-                display: ["Space Grotesk", "Inter", "system-ui", "sans-serif"],
-              },
-            },
-          },
-        };
-      }
-
-      // App State
-      let photos = []; // All imported photos
-      let currentViewMode = "360"; // '360' or 'all'
-      let currentViewer = null;
-      let isAutoRotating = false;
-      let searchTerm = "";
-
-      // Generate a nice thumbnail using canvas (saves memory)
-      async function generateThumbnail(imageUrl, maxWidth = 320) {
-        return new Promise((resolve, reject) => {
-          const img = new Image();
-          img.crossOrigin = "anonymous";
-
-          img.onload = () => {
-            const canvas = document.createElement("canvas");
-            const ctx = canvas.getContext("2d", { alpha: false });
-
-            let { width, height } = img;
-            const ratio = width / height;
-
-            // Maintain aspect, cap width
-            if (width > maxWidth) {
-              width = maxWidth;
-              height = Math.round(width / ratio);
-            }
-
-            // Also cap height for very tall/wide
-            if (height > 220) {
-              height = 220;
-              width = Math.round(height * ratio);
-            }
-
-            canvas.width = width;
-            canvas.height = height;
-
-            ctx.imageSmoothingEnabled = true;
-            ctx.imageSmoothingQuality = "high";
-            ctx.drawImage(img, 0, 0, width, height);
-
-            // Use JPEG for smaller size
-            const thumbUrl = canvas.toDataURL("image/jpeg", 0.82);
-            resolve(thumbUrl);
-          };
-
-          img.onerror = reject;
-          img.src = imageUrl;
-        });
-      }
-
-      // Get image dimensions + create thumbnail
-      async function getPhotoInfo(file) {
-        const fullUrl = URL.createObjectURL(file);
-
-        return new Promise((resolve, reject) => {
-          const img = new Image();
-          img.onload = async () => {
-            const width = img.naturalWidth;
-            const height = img.naturalHeight;
-            const aspectRatio = width / height;
-
-            let thumbUrl;
-            try {
-              thumbUrl = await generateThumbnail(fullUrl);
-            } catch (e) {
-              thumbUrl = fullUrl; // fallback
-            }
-
-            resolve({
-              fullUrl,
-              thumbUrl,
-              width,
-              height,
-              aspectRatio,
-              is360: aspectRatio >= 1.82 && aspectRatio <= 2.22, // tolerant for stitched output
-              name: file.name,
-              lastModified: file.lastModified || Date.now(),
-            });
-          };
-          img.onerror = () => {
-            URL.revokeObjectURL(fullUrl);
-            reject(new Error("Failed to load image"));
-          };
-          img.src = fullUrl;
-        });
-      }
-
-      // Main import handler
-      async function importPhotos() {
-        const input = document.getElementById("fileInput");
-        input.onchange = null; // reset
-
-        input.onchange = async (e) => {
-          const files = Array.from(e.target.files || []);
-          if (files.length === 0) return;
-
-          showToast(
-            `Processing ${files.length} photo${files.length > 1 ? "s" : ""}...`,
-            2000,
-          );
-
-          const newPhotos = [];
-          let detected360 = 0;
-          let errors = 0;
-
-          // Process sequentially to avoid memory spikes on iPhone
-          for (let i = 0; i < files.length; i++) {
-            const file = files[i];
-
-            // Basic validation
-            if (!file.type.startsWith("image/")) {
-              errors++;
-              continue;
-            }
-
-            try {
-              const info = await getPhotoInfo(file);
-
-              const photo = {
-                id: Date.now() + i + Math.random(),
-                ...info,
-                importedAt: Date.now(),
-              };
-
-              if (photo.is360) detected360++;
-
-              newPhotos.push(photo);
-            } catch (err) {
-              console.warn("Failed to process", file.name, err);
-              errors++;
-            }
-          }
-
-          // Add to state
-          photos = [...photos, ...newPhotos];
-
-          // Update UI
-          filterAndRender();
-          updateStats();
-
-          // Feedback
-          let message = `Added ${newPhotos.length} photo${newPhotos.length !== 1 ? "s" : ""}`;
-          if (detected360 > 0) {
-            message += ` • ${detected360} detected as 360°`;
-          }
-          if (errors > 0) {
-            message += ` • ${errors} failed`;
-          }
-
-          showToast(message, 3800);
-
-          // Show warning for very large files
-          const largeOnes = newPhotos.filter((p) => p.width > 10000);
-          if (largeOnes.length > 0) {
-            setTimeout(() => {
-              showToast(
-                `Note: ${largeOnes.length} very high-res pano(s) added. May be heavy on mobile — resize if viewer struggles.`,
-                5200,
-              );
-            }, 1200);
-          }
-
-          // Reset input
-          input.value = "";
-        };
-
-        input.click();
-      }
-
-      function updateStats() {
-        const statsBar = document.getElementById("statsBar");
-        const statsText = document.getElementById("statsText");
-
-        const total = photos.length;
-        const count360 = photos.filter((p) => p.is360).length;
-
-        if (total === 0) {
-          statsBar.classList.add("hidden");
-          return;
-        }
-
-        statsBar.classList.remove("hidden");
-
-        let text = `${total} photo${total !== 1 ? "s" : ""} imported`;
-        if (count360 > 0) {
-          text += ` • ${count360} true 360°`;
-        }
-
-        statsText.textContent = text;
-      }
-
-      function setViewMode(mode) {
-        currentViewMode = mode;
-
-        // Update button styles
-        const btn360 = document.getElementById("btn360");
-        const btnAll = document.getElementById("btnAll");
-
-        if (mode === "360") {
-          btn360.classList.add("bg-slate-800", "text-white");
-          btn360.classList.remove("text-slate-400");
-          btnAll.classList.remove("bg-slate-800", "text-white");
-          btnAll.classList.add("text-slate-400");
-        } else {
-          btnAll.classList.add("bg-slate-800", "text-white");
-          btnAll.classList.remove("text-slate-400");
-          btn360.classList.remove("bg-slate-800", "text-white");
-          btn360.classList.add("text-slate-400");
-        }
-
-        filterAndRender();
-      }
-
-      function filterAndRender() {
-        const grid = document.getElementById("photoGrid");
-        const empty = document.getElementById("emptyState");
-        const searchInput = document.getElementById("searchInput");
-
-        searchTerm = (searchInput.value || "").toLowerCase().trim();
-
-        let filtered = photos;
-
-        // Apply view mode filter
-        if (currentViewMode === "360") {
-          filtered = filtered.filter((p) => p.is360);
-        }
-
-        // Apply search
-        if (searchTerm.length > 0) {
-          filtered = filtered.filter(
-            (p) =>
-              p.name.toLowerCase().includes(searchTerm) ||
-              (p.width + "x" + p.height).includes(searchTerm),
-          );
-        }
-
-        // Render
-        grid.innerHTML = "";
-
-        if (filtered.length === 0) {
-          empty.classList.remove("hidden");
-          grid.classList.add("hidden");
-
-          // Customize empty message based on context
-          if (photos.length > 0 && currentViewMode === "360") {
-            empty.querySelector("h3").textContent = "No 360° photos match";
-            empty.querySelector("p").innerHTML =
-              'Try switching to <span class="font-medium">"All"</span> view or adjust your search.';
-          } else if (photos.length === 0) {
-            empty.querySelector("h3").textContent = "No 360° photos yet";
-            empty.querySelector("p").innerHTML =
-              'Tap the <span class="font-medium text-sky-400">Import Photos</span> button and select your DJI Sphere panoramas.';
-          }
-          return;
-        }
-
-        empty.classList.add("hidden");
-        grid.classList.remove("hidden");
-
-        filtered.forEach((photo) => {
-          const card = createPhotoCard(photo);
-          grid.appendChild(card);
-        });
-      }
-
-      function createPhotoCard(photo) {
-        const card = document.createElement("div");
-        card.className = `photo-card group bg-slate-900 border border-slate-800 rounded-3xl overflow-hidden cursor-pointer flex flex-col`;
-
-        const dateStr = new Date(photo.lastModified).toLocaleDateString(
-          "en-US",
-          {
-            month: "short",
-            day: "numeric",
-            year: "numeric",
-          },
-        );
-
-        const is360 = photo.is360;
-        const badgeClass = is360 ? "360-badge" : "pano-badge";
-        const badgeText = is360 ? "360° SPHERE" : "PANORAMA";
-
-        card.innerHTML = `
-                <div class="relative aspect-[16/10] bg-slate-950 overflow-hidden">
-                    <img src="${photo.thumbUrl}" 
-                         class="thumb w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.03]" 
-                         alt="${photo.name}"
-                         loading="lazy">
-                    
-                    <!-- Badge -->
-                    <div class="absolute top-3 right-3">
-                        <div class="${badgeClass} text-white text-[9px] font-bold tracking-[1px] px-3 py-px rounded-full shadow flex items-center gap-x-1">
-                            <span>${badgeText}</span>
+    <header class="border-b border-slate-800 bg-slate-950/80 backdrop-blur-lg sticky top-0 z-40">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6">
+            <div class="flex items-center justify-between h-16">
+                <div class="flex items-center gap-x-3">
+                    <div class="flex items-center gap-x-2.5">
+                        <div class="w-9 h-9 bg-sky-500 rounded-2xl flex items-center justify-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.25">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 4.875c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5A1.125 1.125 0 013.75 9.375v-4.5zM3.75 14.625c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5a1.125 1.125 0 01-1.125-1.125v-4.5zM13.5 4.875c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5A1.125 1.125 0 0113.5 9.375v-4.5z" />
+                            </svg>
+                        </div>
+                        <div>
+                            <span class="font-display text-2xl font-semibold tracking-tighter">Air360</span>
+                            <span class="text-[10px] font-mono text-sky-500/70 tracking-[2px] block -mt-1">DJI</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="flex items-center gap-x-3 text-sm">
+                    <!-- Storage Indicator -->
+                    <div id="storageIndicator" class="hidden sm:flex items-center gap-x-2 px-3 py-1.5 bg-slate-900 rounded-3xl border border-slate-800 text-xs">
+                        <div class="flex items-center gap-x-1.5">
+                            <div class="w-2 h-2 bg-sky-400 rounded-full"></div>
+                            <span id="storageText" class="font-mono text-sky-400">0 photos • 0 KB</span>
                         </div>
                     </div>
                     
-                    <!-- Resolution -->
-                    <div class="absolute bottom-3 left-3 bg-black/70 text-white text-[10px] font-mono px-2 py-px rounded">
-                        ${photo.width}×${photo.height}
-                    </div>
+                    <button onclick="clearAllPersistedData()" 
+                            class="text-xs px-3 py-1.5 rounded-2xl border border-red-900/60 text-red-400 hover:bg-red-950/40 transition-colors flex items-center gap-x-1.5">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.595-1.858L5 7m5 4v6m4-6v6m1-10V9a1 1 0 00-1-1h-4a1 1 0 00-1 1v1M3 7h18" />
+                        </svg>
+                        <span class="hidden sm:inline">Clear Data</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 pt-8 pb-12">
+        <div class="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-y-4 mb-8">
+            <div>
+                <h1 class="font-display text-4xl sm:text-5xl tracking-tighter font-semibold">Your 360° moments,<br>beautifully viewed.</h1>
+                <p class="mt-2 text-lg text-slate-400 max-w-md">Auto-detects DJI Air 3S Sphere panoramas. Persisted with thumbnails only • low storage.</p>
+            </div>
+        </div>
+
+        <!-- Controls -->
+        <div class="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center mb-6">
+            <button onclick="importPhotos()" class="flex-1 sm:flex-none inline-flex items-center justify-center gap-x-2.5 bg-sky-500 hover:bg-sky-600 active:bg-sky-700 transition-all text-white font-semibold px-6 h-12 rounded-3xl shadow-lg shadow-sky-500/30 text-sm">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                </svg>
+                <span>Import Photos</span>
+            </button>
+            
+            <input type="file" id="fileInput" multiple accept="image/jpeg,image/jpg,image/png,image/heic" class="hidden">
+            
+            <div class="flex-1 relative">
+                <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                    </svg>
+                </div>
+                <input id="searchInput" oninput="filterAndRender()" type="text" placeholder="Search filenames or dates..." class="w-full bg-slate-900 border border-slate-800 focus:border-sky-500/50 pl-11 pr-4 h-12 rounded-3xl text-sm placeholder:text-slate-500 focus:outline-none">
+            </div>
+            
+            <div class="flex-shrink-0 inline-flex rounded-3xl border border-slate-800 p-1 bg-slate-900">
+                <button onclick="setViewMode('360')" id="btn360" class="px-5 py-2 text-sm font-medium rounded-[20px] transition-all flex items-center gap-x-1.5 bg-slate-800 text-white">
+                    <span>360° Only</span>
+                </button>
+                <button onclick="setViewMode('all')" id="btnAll" class="px-5 py-2 text-sm font-medium rounded-[20px] transition-all flex items-center gap-x-1.5 text-slate-400 hover:text-slate-200">
+                    <span>All</span>
+                </button>
+            </div>
+            
+            <button onclick="clearAllPhotos()" class="flex-shrink-0 inline-flex items-center justify-center gap-x-2 text-sm font-medium text-red-400 hover:text-red-300 hover:bg-red-950/50 px-5 h-12 rounded-3xl border border-red-900/60">
+                Clear Session
+            </button>
+        </div>
+
+        <div id="statsBar" class="hidden mb-4 text-xs text-slate-500 flex items-center gap-x-4">
+            <div id="statsText"></div>
+            <div class="flex-1 h-px bg-slate-800"></div>
+        </div>
+
+        <div id="photoGrid" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4"></div>
+
+        <div id="emptyState" class="hidden empty-state rounded-3xl border border-slate-800 p-12 text-center">
+            <div class="mx-auto w-16 h-16 bg-slate-800 rounded-2xl flex items-center justify-center mb-6">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-8 h-8 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.75">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M3 9a2 2 0 012-2 2 2 0 012 2m-2 2v10a2 2 0 01-2-2V9zm4 0v10a2 2 0 002 2h10a2 2 0 002-2V9a2 2 0 00-2-2m-4 0v10" />
+                </svg>
+            </div>
+            <h3 class="font-semibold text-xl tracking-tight">No 360° photos yet</h3>
+            <p class="mt-2 text-slate-400 max-w-xs mx-auto">Import your DJI Sphere panoramas. They will be saved with thumbnails only (very low storage).</p>
+        </div>
+    </div>
+
+    <!-- Viewer Modal -->
+    <div id="viewerModal" onclick="if (event.target.id === 'viewerModal') closeViewer()" class="hidden fixed inset-0 z-50 bg-black/90 flex items-center justify-center p-2 sm:p-4">
+        <div onclick="event.stopImmediatePropagation()" class="bg-slate-900 w-full max-w-[1100px] rounded-3xl overflow-hidden border border-slate-700 shadow-2xl flex flex-col h-[95dvh] sm:h-auto sm:max-h-[92vh]">
+            
+            <div class="flex items-center justify-between px-5 py-4 border-b border-slate-800 bg-slate-950/70">
+                <div class="min-w-0 flex-1">
+                    <div id="viewerTitle" class="font-semibold text-lg tracking-tight truncate"></div>
+                    <div id="viewerMeta" class="text-xs text-slate-400 font-mono"></div>
+                </div>
+                
+                <div class="flex items-center gap-x-2 flex-shrink-0">
+                    <button onclick="resetView()" class="flex items-center gap-x-1.5 text-xs font-medium px-4 h-9 rounded-2xl border border-slate-700 hover:bg-slate-800 active:bg-slate-700 transition-colors" title="Reset view">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.058 11H1M12 3v2m0 16v2m9-9H15m-6 0a8.002 8.002 0 01-1.357-1.357" />
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M20 12a8 8 0 01-8 8m0-16a8 8 0 018 8" />
+                        </svg>
+                        <span class="hidden sm:inline">Reset</span>
+                    </button>
                     
-                    <!-- Delete button -->
-                    <button onclick="event.stopImmediatePropagation(); deletePhoto(${photo.id});" 
-                            class="absolute top-3 left-3 w-7 h-7 flex items-center justify-center bg-black/60 hover:bg-red-600/90 text-white rounded-full opacity-0 group-hover:opacity-100 active:opacity-100 transition-all">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="4">
+                    <button onclick="toggleAutoRotate()" id="autoRotateBtn" class="flex items-center gap-x-1.5 text-xs font-medium px-4 h-9 rounded-2xl border border-slate-700 hover:bg-slate-800 active:bg-slate-700 transition-colors">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.25">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M14.25 9.75L16.5 12l-2.25 2.25m-4.5 0L7.5 12l2.25-2.25M6 20.25h12A2.25 2.25 0 0020.25 18V6A2.25 2.25 0 0018 3.75H6A2.25 2.25 0 003.75 6v12A2.25 2.25 0 006 20.25z" />
+                        </svg>
+                        <span id="autoRotateText" class="hidden sm:inline">Auto Rotate</span>
+                    </button>
+                    
+                    <button onclick="closeViewer()" class="w-9 h-9 flex items-center justify-center text-slate-400 hover:text-white hover:bg-slate-800 rounded-2xl transition-colors">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6h12v12" />
                         </svg>
                     </button>
                 </div>
+            </div>
+            
+            <div class="flex-1 relative bg-black p-2 sm:p-3" style="min-height: 320px;" id="viewerContainer">
+                <div id="viewer" class="w-full h-full rounded-2xl pannellum-container"></div>
                 
-                <div class="p-3.5 flex-1 flex flex-col">
-                    <div class="font-medium text-sm leading-tight line-clamp-2 pr-1">${photo.name}</div>
-                    
-                    <div class="mt-auto pt-2 flex items-center justify-between text-[10px] text-slate-500">
-                        <div>${dateStr}</div>
-                        <div class="font-mono">${(photo.aspectRatio || 0).toFixed(2)}:1</div>
-                    </div>
+                <!-- Floating Export Button -->
+                <button onclick="exportCurrentView()" class="absolute bottom-4 right-4 z-10 flex items-center gap-x-2 bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700 text-white text-sm font-semibold px-4 h-11 rounded-3xl shadow-lg shadow-emerald-900/50 transition-all active:scale-[0.985]">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M17 13v6m-3-3h6M6 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4l2 2h10a2 2 0 012 2v3" />
+                    </svg>
+                    <span class="hidden sm:inline">Export View</span>
+                    <span class="sm:hidden">Save</span>
+                </button>
+                
+                <div id="viewerHint" class="viewer-overlay absolute bottom-6 left-1/2 -translate-x-1/2 bg-black/60 text-white text-[10px] px-3 py-1 rounded-full flex items-center gap-x-1.5 pointer-events-none">
+                    <span>Drag to look • Pinch to zoom</span>
                 </div>
-            `;
+            </div>
+            
+            <div class="px-5 py-3 text-[10px] text-center text-slate-500 border-t border-slate-800 bg-slate-950/50">
+                Powered by Pannellum • Thumbnails stored locally • Full-res loaded on demand
+            </div>
+        </div>
+    </div>
 
-        // Click to open viewer (but not on delete btn)
-        card.addEventListener("click", () => {
-          openViewer(photo.id);
-        });
+    <div id="toastContainer" class="fixed bottom-4 left-1/2 -translate-x-1/2 z-[60] flex flex-col gap-y-2 items-center"></div>
 
-        return card;
-      }
-
-      function deletePhoto(id) {
-        if (!confirm("Remove this photo from the list?")) return;
-
-        const index = photos.findIndex((p) => p.id === id);
-        if (index === -1) return;
-
-        const photo = photos[index];
-
-        // Revoke object URLs to free memory
-        if (photo.fullUrl && photo.fullUrl.startsWith("blob:")) {
-          URL.revokeObjectURL(photo.fullUrl);
-        }
-        // thumbUrl is usually data: so no revoke needed
-
-        photos.splice(index, 1);
-
-        filterAndRender();
-        updateStats();
-
-        showToast("Photo removed", 1400);
-      }
-
-      function clearAllPhotos() {
-        if (photos.length === 0) return;
-        if (!confirm(`Remove all ${photos.length} photos from this session?`))
-          return;
-
-        // Revoke all blob URLs
-        photos.forEach((photo) => {
-          if (photo.fullUrl && photo.fullUrl.startsWith("blob:")) {
-            URL.revokeObjectURL(photo.fullUrl);
-          }
-        });
-
-        photos = [];
-        filterAndRender();
-        updateStats();
-
-        document.getElementById("searchInput").value = "";
-        showToast("All photos cleared", 1600);
-      }
-
-      // ============ VIEWER ============
-
-      let autoRotateInterval = null;
-
-      function openViewer(id) {
-        const photo = photos.find((p) => p.id === id);
-        if (!photo) return;
-
-        const modal = document.getElementById("viewerModal");
-        const titleEl = document.getElementById("viewerTitle");
-        const metaEl = document.getElementById("viewerMeta");
-        const viewerDiv = document.getElementById("viewer");
-        const hint = document.getElementById("viewerHint");
-
-        // Set header info
-        titleEl.textContent = photo.name;
-        metaEl.innerHTML = `${photo.width} × ${photo.height} &nbsp;•&nbsp; ${(photo.aspectRatio || 0).toFixed(2)}:1 &nbsp;•&nbsp; ${new Date(photo.lastModified).toLocaleDateString()}`;
-
-        // Show modal
-        modal.classList.remove("hidden");
-        modal.classList.add("flex");
-
-        // Clean previous
-        if (currentViewer) {
-          try {
-            currentViewer.destroy();
-          } catch (e) {}
-          currentViewer = null;
-        }
-        viewerDiv.innerHTML = "";
-
-        // Warn for extremely large textures
-        if (photo.width > 12000) {
-          showToast(
-            "Very high resolution — viewer may be slow or limited by iPhone GPU. Consider resizing the original to ~8000–10000px wide.",
-            6500,
-          );
+    <script>
+        // Tailwind config
+        function initTailwind() {
+            tailwind.config = { theme: { extend: { fontFamily: { 'display': ['Space Grotesk', 'Inter', 'system-ui', 'sans-serif'] } } } };
         }
 
-        // Initialize Pannellum
-        try {
-          currentViewer = pannellum.viewer("viewer", {
-            type: "equirectangular",
-            panorama: photo.fullUrl,
-            autoLoad: true,
-            hfov: 95,
-            minHfov: 20,
-            maxHfov: 140,
-            pitch: 0,
-            yaw: 0,
-            friction: 0.7, // nice inertia feel
-            keyboardZoom: false,
-            mouseZoom: true,
-            showControls: false, // we have custom
-            showFullscreenCtrl: false,
-            showZoomCtrl: false,
-            draggable: true,
-            touchPan: true,
-            // Compass and other optional
-            compass: false,
-          });
+        // State
+        let photos = [];
+        let currentViewMode = '360';
+        let currentViewer = null;
+        let currentPhoto = null;
+        let isAutoRotating = false;
+        let searchTerm = '';
+        let db = null;
+        const DB_NAME = 'air360-db-v2';
+        const STORE_NAME = 'photos';
 
-          // Hide hint after user interacts
-          const hideHint = () => {
-            if (hint) hint.style.transition = "opacity 0.4s";
-            if (hint) hint.style.opacity = "0";
-            setTimeout(() => {
-              if (hint && hint.parentNode) hint.parentNode.removeChild(hint);
-            }, 450);
-            viewerDiv.removeEventListener("mousedown", hideHint);
-            viewerDiv.removeEventListener("touchstart", hideHint);
-          };
+        // ========== IndexedDB ==========
+        async function openDB() {
+            return new Promise((resolve, reject) => {
+                const request = indexedDB.open(DB_NAME, 1);
+                request.onupgradeneeded = (e) => {
+                    const db = e.target.result;
+                    if (!db.objectStoreNames.contains(STORE_NAME)) db.createObjectStore(STORE_NAME, { keyPath: 'id' });
+                };
+                request.onsuccess = (e) => { db = e.target.result; resolve(db); };
+                request.onerror = (e) => reject(e.target.error);
+            });
+        }
 
-          viewerDiv.addEventListener("mousedown", hideHint, { once: true });
-          viewerDiv.addEventListener("touchstart", hideHint, { once: true });
+        async function savePhotoToDB(photo) {
+            if (!db) await openDB();
+            return new Promise((resolve, reject) => {
+                const tx = db.transaction(STORE_NAME, 'readwrite');
+                const store = tx.objectStore(STORE_NAME);
+                const toStore = {
+                    id: photo.id, name: photo.name, width: photo.width, height: photo.height,
+                    aspectRatio: photo.aspectRatio, is360: photo.is360,
+                    captureDate: photo.captureDate ? photo.captureDate.toISOString() : null,
+                    cameraMake: photo.cameraMake, cameraModel: photo.cameraModel,
+                    lastModified: photo.lastModified, thumbUrl: photo.thumbUrl,
+                    importedAt: photo.importedAt || Date.now()
+                };
+                const req = store.put(toStore);
+                req.onsuccess = () => resolve();
+                req.onerror = () => reject(req.error);
+            });
+        }
 
-          // Optional: Auto-start very gentle rotation for first-time wow factor (disabled by default)
-          // currentViewer.startAutoRotate(0.8);
-        } catch (err) {
-          console.error("Pannellum init failed:", err);
-          viewerDiv.innerHTML = `
-                    <div class="flex flex-col items-center justify-center h-full text-center p-8">
-                        <p class="text-red-400">Failed to load 360° viewer.</p>
-                        <p class="text-xs text-slate-400 mt-2">This can happen with extremely large images. Try resizing the photo first.</p>
+        async function loadAllPhotosFromDB() {
+            if (!db) await openDB();
+            return new Promise((resolve, reject) => {
+                const tx = db.transaction(STORE_NAME, 'readonly');
+                const store = tx.objectStore(STORE_NAME);
+                const req = store.getAll();
+                req.onsuccess = () => {
+                    const stored = req.result || [];
+                    const restored = stored.map(p => ({
+                        ...p,
+                        captureDate: p.captureDate ? new Date(p.captureDate) : null,
+                        fullUrl: null
+                    }));
+                    resolve(restored);
+                };
+                req.onerror = () => reject(req.error);
+            });
+        }
+
+        async function deletePhotoFromDB(id) {
+            if (!db) await openDB();
+            return new Promise((resolve, reject) => {
+                const tx = db.transaction(STORE_NAME, 'readwrite');
+                const req = tx.objectStore(STORE_NAME).delete(id);
+                req.onsuccess = () => resolve();
+                req.onerror = () => reject(req.error);
+            });
+        }
+
+        async function clearAllFromDB() {
+            if (!db) await openDB();
+            return new Promise((resolve, reject) => {
+                const tx = db.transaction(STORE_NAME, 'readwrite');
+                const req = tx.objectStore(STORE_NAME).clear();
+                req.onsuccess = () => resolve();
+                req.onerror = () => reject(req.error);
+            });
+        }
+
+        function updateStorageIndicator() {
+            const el = document.getElementById('storageIndicator');
+            const textEl = document.getElementById('storageText');
+            if (!el || !textEl) return;
+            const count = photos.length;
+            if (count === 0) { el.classList.add('hidden'); return; }
+            el.classList.remove('hidden');
+            let bytes = 0;
+            photos.forEach(p => { if (p.thumbUrl?.startsWith('data:')) bytes += Math.round(p.thumbUrl.length * 0.75); });
+            const kb = Math.round(bytes / 1024);
+            textEl.textContent = `${count} photo${count !== 1 ? 's' : ''} • ~${kb} KB`;
+        }
+
+        async function clearAllPersistedData() {
+            if (!confirm('Clear ALL persisted photos from this device?')) return;
+            await clearAllFromDB();
+            photos = [];
+            filterAndRender();
+            updateStorageIndicator();
+            showToast('All persisted data cleared', 2000);
+        }
+
+        // ========== Helpers ==========
+        async function generateThumbnail(imageUrl, maxW = 320) {
+            return new Promise((resolve, reject) => {
+                const img = new Image();
+                img.onload = () => {
+                    const c = document.createElement('canvas');
+                    const ctx = c.getContext('2d');
+                    let w = img.naturalWidth, h = img.naturalHeight;
+                    const r = w / h;
+                    if (w > maxW) { w = maxW; h = Math.round(w / r); }
+                    if (h > 220) { h = 220; w = Math.round(h * r); }
+                    c.width = w; c.height = h;
+                    ctx.drawImage(img, 0, 0, w, h);
+                    resolve(c.toDataURL('image/jpeg', 0.82));
+                };
+                img.onerror = reject;
+                img.src = imageUrl;
+            });
+        }
+
+        async function parseBasicExif(file) {
+            return new Promise(resolve => {
+                const r = new FileReader();
+                r.onload = e => {
+                    try {
+                        const v = new DataView(e.target.result);
+                        let o = 0;
+                        if (v.getUint16(o) !== 0xFFD8) return resolve({});
+                        o += 2;
+                        while (o < e.target.result.byteLength - 4) {
+                            const m = v.getUint16(o), s = v.getUint16(o + 2);
+                            if (m === 0xFFE1) {
+                                const h = o + 4;
+                                if (v.getUint32(h) === 0x45786966 && v.getUint16(h + 4) === 0x0000) {
+                                    const t = h + 6;
+                                    const le = v.getUint16(t) === 0x4949;
+                                    const g16 = o => le ? v.getUint16(o, true) : v.getUint16(o);
+                                    const g32 = o => le ? v.getUint32(o, true) : v.getUint32(o);
+                                    const ifd = g32(t + 4) + t;
+                                    let n = g16(ifd), eO = ifd + 2, exifP = null, mk = null, md = null;
+                                    for (let i = 0; i < n; i++) {
+                                        const tag = g16(eO);
+                                        if (tag === 0x010F) mk = readAscii(v, eO + 8, g32(eO + 4), le);
+                                        if (tag === 0x0110) md = readAscii(v, eO + 8, g32(eO + 4), le);
+                                        if (tag === 0x8769) exifP = g32(eO + 8) + t;
+                                        eO += 12;
+                                    }
+                                    if (exifP) {
+                                        n = g16(exifP); eO = exifP + 2;
+                                        for (let i = 0; i < n; i++) {
+                                            if (g16(eO) === 0x9003 || g16(eO) === 0x0132) {
+                                                const so = g32(eO + 8) + t;
+                                                const ds = readAscii(v, so, 20, le);
+                                                if (ds) {
+                                                    const iso = ds.replace(/:/g, '-').replace(' ', 'T');
+                                                    const d = new Date(iso);
+                                                    if (!isNaN(d)) return resolve({ captureDate: d, make: mk, model: md });
+                                                }
+                                            }
+                                            eO += 12;
+                                        }
+                                    }
+                                    return resolve({ make: mk, model: md });
+                                }
+                            }
+                            o += 2 + s;
+                            if (m === 0xFFDA) break;
+                        }
+                    } catch (_) {}
+                    resolve({});
+                };
+                r.onerror = () => resolve({});
+                r.readAsArrayBuffer(file.slice(0, 131072));
+            });
+            function readAscii(v, off, len, le) {
+                let s = '';
+                for (let i = 0; i < len; i++) { const c = v.getUint8(off + i); if (c === 0) break; s += String.fromCharCode(c); }
+                return s.trim();
+            }
+        }
+
+        async function getPhotoInfo(file) {
+            const fullUrl = URL.createObjectURL(file);
+            const exif = await parseBasicExif(file);
+            return new Promise((res, rej) => {
+                const img = new Image();
+                img.onload = async () => {
+                    const w = img.naturalWidth, h = img.naturalHeight, ar = w / h;
+                    const tu = await generateThumbnail(fullUrl).catch(() => fullUrl);
+                    res({
+                        fullUrl, thumbUrl: tu, width: w, height: h, aspectRatio: ar,
+                        is360: ar >= 1.82 && ar <= 2.22,
+                        name: file.name, lastModified: file.lastModified || Date.now(),
+                        captureDate: exif.captureDate || null,
+                        cameraMake: exif.make || null, cameraModel: exif.model || null
+                    });
+                };
+                img.onerror = () => { URL.revokeObjectURL(fullUrl); rej(new Error('load')); };
+                img.src = fullUrl;
+            });
+        }
+
+        // Import
+        async function importPhotos() {
+            const input = document.getElementById('fileInput');
+            input.onchange = async (e) => {
+                const files = Array.from(e.target.files || []);
+                if (!files.length) return;
+                showToast(`Processing ${files.length} photo${files.length > 1 ? 's' : ''}...`, 1800);
+                const added = [];
+                let det = 0;
+                for (let i = 0; i < files.length; i++) {
+                    try {
+                        const info = await getPhotoInfo(files[i]);
+                        const p = { id: Date.now() + i + Math.random(), ...info, importedAt: Date.now(), fullUrl: info.fullUrl };
+                        if (p.is360) det++;
+                        added.push(p);
+                        await savePhotoToDB(p);
+                    } catch (_) {}
+                }
+                photos.push(...added);
+                filterAndRender();
+                updateStorageIndicator();
+                showToast(`Added ${added.length} photo${added.length !== 1 ? 's' : ''}${det ? ` • ${det} 360°` : ''}`, 3200);
+                input.value = '';
+            };
+            input.click();
+        }
+
+        function filterAndRender() {
+            const grid = document.getElementById('photoGrid');
+            const empty = document.getElementById('emptyState');
+            const q = (document.getElementById('searchInput').value || '').toLowerCase().trim();
+            let f = photos;
+            if (currentViewMode === '360') f = f.filter(p => p.is360);
+            if (q) f = f.filter(p => p.name.toLowerCase().includes(q) || (p.captureDate && p.captureDate.toLocaleDateString().toLowerCase().includes(q)));
+            grid.innerHTML = '';
+            if (!f.length) { empty.classList.remove('hidden'); grid.classList.add('hidden'); return; }
+            empty.classList.add('hidden'); grid.classList.remove('hidden');
+            f.forEach(p => grid.appendChild(createPhotoCard(p)));
+        }
+
+        function createPhotoCard(p) {
+            const el = document.createElement('div');
+            el.className = 'photo-card bg-slate-900 border border-slate-800 rounded-3xl overflow-hidden cursor-pointer flex flex-col';
+            const d = p.captureDate ? p.captureDate.toLocaleDateString('en-US',{month:'short',day:'numeric'}) : new Date(p.lastModified).toLocaleDateString('en-US',{month:'short',day:'numeric'});
+            const b = p.is360 ? `<div class="360-badge text-white text-[9px] font-bold px-3 py-px rounded-full">360° SPHERE</div>` : `<div class="pano-badge text-white text-[9px] font-bold px-3 py-px rounded-full">PANORAMA</div>`;
+            el.innerHTML = `
+                <div class="relative aspect-[16/10] bg-slate-950 overflow-hidden">
+                    <img src="${p.thumbUrl}" class="thumb w-full h-full object-cover">
+                    <div class="absolute top-3 right-3">${b}</div>
+                    <div class="absolute bottom-3 left-3 bg-black/70 text-white text-[10px] font-mono px-2 py-px rounded">${p.width}×${p.height}</div>
+                    <button onclick="event.stopImmediatePropagation(); deletePhoto(${p.id});" class="absolute top-3 left-3 w-7 h-7 flex items-center justify-center bg-black/60 hover:bg-red-600/90 rounded-full opacity-0 group-hover:opacity-100">×</button>
+                </div>
+                <div class="p-3.5 flex-1 flex flex-col">
+                    <div class="font-medium text-sm leading-tight line-clamp-2">${p.name}</div>
+                    <div class="mt-auto pt-2 flex justify-between text-[10px] text-slate-500"><div>${d}</div><div class="font-mono">${(p.aspectRatio||0).toFixed(2)}:1</div></div>
+                </div>`;
+            el.onclick = () => openViewer(p.id);
+            return el;
+        }
+
+        function deletePhoto(id) {
+            if (!confirm('Remove from list?')) return;
+            const i = photos.findIndex(x => x.id === id);
+            if (i < 0) return;
+            if (photos[i].fullUrl?.startsWith('blob:')) URL.revokeObjectURL(photos[i].fullUrl);
+            photos.splice(i, 1);
+            deletePhotoFromDB(id);
+            filterAndRender();
+            updateStorageIndicator();
+        }
+
+        function clearAllPhotos() {
+            if (!photos.length || !confirm(`Clear current session (${photos.length} photos)?`)) return;
+            photos.forEach(p => { if (p.fullUrl?.startsWith('blob:')) URL.revokeObjectURL(p.fullUrl); });
+            photos = [];
+            filterAndRender();
+            updateStorageIndicator();
+        }
+
+        // Viewer
+        async function openViewer(id) {
+            const p = photos.find(x => x.id === id);
+            if (!p) return;
+            currentPhoto = p;
+
+            const modal = document.getElementById('viewerModal');
+            document.getElementById('viewerTitle').textContent = p.name;
+            const ds = p.captureDate ? p.captureDate.toLocaleDateString() : new Date(p.lastModified).toLocaleDateString();
+            const cam = (p.cameraMake || p.cameraModel) ? ` • ${p.cameraMake || ''} ${p.cameraModel || ''}` : '';
+            document.getElementById('viewerMeta').innerHTML = `${p.width}×${p.height} • ${(p.aspectRatio||0).toFixed(2)}:1 • ${ds}${cam}`;
+
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+
+            if (currentViewer) { try { currentViewer.destroy(); } catch(e){} currentViewer = null; }
+            const v = document.getElementById('viewer');
+            v.innerHTML = '';
+
+            if (!p.fullUrl) {
+                showFullResPrompt(p, v);
+                return;
+            }
+            initPannellum(p, v);
+        }
+
+        function showFullResPrompt(p, container) {
+            container.innerHTML = `
+                <div class="flex flex-col items-center justify-center h-full text-center p-8">
+                    <div class="w-20 h-20 mb-6 rounded-2xl overflow-hidden border border-slate-700"><img src="${p.thumbUrl}" class="w-full h-full object-cover"></div>
+                    <h3 class="text-xl font-semibold mb-2">Full resolution needed</h3>
+                    <p class="text-slate-400 max-w-xs mb-6">We store only thumbnails to save space. Pick the original file from your library.</p>
+                    <div class="bg-slate-800 border border-slate-700 rounded-2xl px-4 py-3 mb-6 w-full max-w-xs text-left">
+                        <div class="text-xs text-slate-400 mb-1">Look for:</div>
+                        <div class="font-mono text-sm break-all">${p.name}</div>
                     </div>
-                `;
+                    <button onclick="selectFullResForCurrentPhoto()" class="bg-white text-slate-950 font-semibold px-8 h-12 rounded-3xl flex items-center gap-x-2 active:scale-[0.985]">
+                        Select from Photos
+                    </button>
+                    <button onclick="closeViewer()" class="mt-4 text-sm text-slate-400">Cancel</button>
+                </div>`;
         }
 
-        // Reset auto rotate state
-        isAutoRotating = false;
-        const autoBtn = document.getElementById("autoRotateBtn");
-        const autoText = document.getElementById("autoRotateText");
-        if (autoBtn)
-          autoBtn.classList.remove("!bg-emerald-600", "!border-emerald-500");
-        if (autoText) autoText.textContent = "Auto Rotate";
-      }
-
-      function closeViewer() {
-        const modal = document.getElementById("viewerModal");
-
-        if (currentViewer) {
-          try {
-            currentViewer.destroy();
-          } catch (e) {}
-          currentViewer = null;
+        async function selectFullResForCurrentPhoto() {
+            if (!currentPhoto) return;
+            const inp = document.createElement('input');
+            inp.type = 'file';
+            inp.accept = 'image/*';
+            inp.onchange = async (e) => {
+                const f = e.target.files[0];
+                if (!f) return;
+                try {
+                    const url = URL.createObjectURL(f);
+                    currentPhoto.fullUrl = url;
+                    const c = document.getElementById('viewer');
+                    c.innerHTML = '';
+                    initPannellum(currentPhoto, c);
+                    showToast('Full resolution loaded for this session', 2200);
+                } catch (_) { showToast('Failed to load file'); }
+            };
+            inp.click();
         }
 
-        // Stop any auto rotate
-        if (autoRotateInterval) {
-          clearInterval(autoRotateInterval);
-          autoRotateInterval = null;
-        }
-        isAutoRotating = false;
-
-        modal.classList.remove("flex");
-        modal.classList.add("hidden");
-      }
-
-      function resetView() {
-        if (!currentViewer) return;
-        currentViewer.lookAt(0, 0, 95, 600); // pitch, yaw, hfov, transition ms
-      }
-
-      function toggleAutoRotate() {
-        if (!currentViewer) return;
-
-        const btn = document.getElementById("autoRotateBtn");
-        const textEl = document.getElementById("autoRotateText");
-
-        isAutoRotating = !isAutoRotating;
-
-        if (isAutoRotating) {
-          currentViewer.startAutoRotate(1.2); // gentle speed
-          if (btn)
-            btn.classList.add(
-              "!bg-emerald-600",
-              "!border-emerald-500",
-              "text-white",
-            );
-          if (textEl) textEl.textContent = "Stop Rotate";
-          showToast("Auto-rotate enabled • Tap again to stop", 1800);
-        } else {
-          currentViewer.stopAutoRotate();
-          if (btn)
-            btn.classList.remove(
-              "!bg-emerald-600",
-              "!border-emerald-500",
-              "text-white",
-            );
-          if (textEl) textEl.textContent = "Auto Rotate";
-        }
-      }
-
-      // Simple toast system
-      function showToast(message, durationMs = 2800) {
-        const container = document.getElementById("toastContainer");
-
-        const toast = document.createElement("div");
-        toast.className = `max-w-[92%] sm:max-w-md px-5 py-3 rounded-2xl bg-slate-800 border border-slate-700 text-sm shadow-xl flex items-start gap-x-3`;
-        toast.innerHTML = `
-                <div class="flex-1 pt-0.5">${message}</div>
-                <button class="text-slate-400 hover:text-slate-200 mt-0.5">×</button>
-            `;
-
-        const closeBtn = toast.querySelector("button");
-        closeBtn.onclick = () => {
-          toast.style.transition = "all 0.15s ease";
-          toast.style.opacity = "0";
-          setTimeout(() => toast.remove(), 150);
-        };
-
-        container.appendChild(toast);
-
-        // Auto dismiss
-        setTimeout(() => {
-          if (toast.parentNode) {
-            toast.style.transition = "all 0.2s ease";
-            toast.style.opacity = "0";
-            setTimeout(() => {
-              if (toast.parentNode) toast.parentNode.removeChild(toast);
-            }, 180);
-          }
-        }, durationMs);
-      }
-
-      // Keyboard support
-      function setupKeyboard() {
-        document.addEventListener("keydown", (e) => {
-          const modal = document.getElementById("viewerModal");
-          if (modal.classList.contains("hidden")) return;
-
-          if (e.key === "Escape") {
-            closeViewer();
-          }
-
-          if (!currentViewer) return;
-
-          if (e.key.toLowerCase() === "r") {
-            resetView();
-          }
-
-          if (e.key.toLowerCase() === "a") {
-            toggleAutoRotate();
-          }
-        });
-
-        // Also allow space to toggle auto rotate when viewer open
-        document.addEventListener("keypress", (e) => {
-          if (
-            e.key === " " &&
-            !document.getElementById("viewerModal").classList.contains("hidden")
-          ) {
-            e.preventDefault();
-            toggleAutoRotate();
-          }
-        });
-      }
-
-      function setViewModeInitial() {
-        // Default to 360 only
-        const btn360 = document.getElementById("btn360");
-        btn360.classList.add("bg-slate-800", "text-white");
-      }
-
-      // Initialize everything
-      function initApp() {
-        initTailwind();
-
-        // File input already in DOM
-        const searchInput = document.getElementById("searchInput");
-
-        // Initial empty state visible
-        document.getElementById("emptyState").classList.remove("hidden");
-        document.getElementById("photoGrid").classList.add("hidden");
-
-        setViewModeInitial();
-        setupKeyboard();
-
-        // Demo tip for first-time users (only shows once per session)
-        setTimeout(() => {
-          if (photos.length === 0) {
-            // Optional: show a gentle onboarding toast
-            // showToast('Tip: Select multiple photos at once when importing from your library.', 4200);
-          }
-        }, 8500);
-
-        // Make sure Pannellum is available
-        if (typeof pannellum === "undefined") {
-          console.warn("Pannellum not loaded from CDN. Viewer may not work.");
+        function initPannellum(p, container) {
+            try {
+                currentViewer = pannellum.viewer('viewer', {
+                    type: "equirectangular", panorama: p.fullUrl, autoLoad: true,
+                    hfov: 95, minHfov: 20, maxHfov: 140, pitch: 0, yaw: 0, friction: 0.7,
+                    keyboardZoom: false, mouseZoom: true, showControls: false, draggable: true, touchPan: true
+                });
+            } catch (_) {
+                container.innerHTML = `<div class="flex items-center justify-center h-full text-red-400">Failed to load 360 viewer</div>`;
+            }
         }
 
-        // Expose some functions for debugging in console if needed
-        window.Air360 = {
-          photos,
-          clearAll: clearAllPhotos,
-          import: importPhotos,
-        };
+        function closeViewer() {
+            const m = document.getElementById('viewerModal');
+            if (currentViewer) { try { currentViewer.destroy(); } catch(e){} currentViewer = null; }
+            isAutoRotating = false;
+            m.classList.remove('flex'); m.classList.add('hidden');
+            currentPhoto = null;
+        }
 
-        // Welcome message in console
-        console.log(
-          "%c[Air360] DJI 360 Viewer ready. Open index.html in VS Code → Live Server, or deploy to GitHub Pages.",
-          "color:#64748b",
-        );
-      }
+        function resetView() { if (currentViewer) currentViewer.lookAt(0, 0, 95, 600); }
 
-      // Boot
-      window.onload = initApp;
+        function toggleAutoRotate() {
+            if (!currentViewer) return;
+            const b = document.getElementById('autoRotateBtn');
+            const t = document.getElementById('autoRotateText');
+            isAutoRotating = !isAutoRotating;
+            if (isAutoRotating) {
+                currentViewer.startAutoRotate(1.1);
+                b?.classList.add('!bg-emerald-600', '!border-emerald-500');
+                if (t) t.textContent = 'Stop';
+            } else {
+                currentViewer.stopAutoRotate();
+                b?.classList.remove('!bg-emerald-600', '!border-emerald-500');
+                if (t) t.textContent = 'Auto Rotate';
+            }
+        }
+
+        function exportCurrentView() {
+            if (!currentViewer || !currentPhoto) { showToast('No active view'); return; }
+            try {
+                const c = document.getElementById('viewer');
+                const can = c.querySelector('canvas');
+                if (!can) throw new Error();
+                const u = can.toDataURL('image/jpeg', 0.94);
+                const a = document.createElement('a');
+                a.download = `Air360_${currentPhoto.name.replace(/\.[^/.]+$/, '')}_${Date.now()}.jpg`;
+                a.href = u; a.click();
+                showToast('View exported ✓', 1800);
+            } catch (_) { showToast('Export failed'); }
+        }
+
+        function showToast(m, ms = 2600) {
+            const c = document.getElementById('toastContainer');
+            const t = document.createElement('div');
+            t.className = `max-w-[92%] px-5 py-3 rounded-2xl bg-slate-800 border border-slate-700 text-sm flex items-center gap-x-3`;
+            t.innerHTML = `<div class="flex-1">${m}</div><button class="text-slate-400">×</button>`;
+            t.querySelector('button').onclick = () => t.remove();
+            c.appendChild(t);
+            setTimeout(() => t.parentNode && t.remove(), ms);
+        }
+
+        function setViewMode(m) {
+            currentViewMode = m;
+            document.getElementById('btn360').classList.toggle('bg-slate-800', m === '360');
+            document.getElementById('btn360').classList.toggle('text-white', m === '360');
+            document.getElementById('btnAll').classList.toggle('bg-slate-800', m === 'all');
+            document.getElementById('btnAll').classList.toggle('text-white', m === 'all');
+            filterAndRender();
+        }
+
+        function updateStats() {
+            const b = document.getElementById('statsBar');
+            const t = document.getElementById('statsText');
+            const tot = photos.length, c3 = photos.filter(p => p.is360).length;
+            if (!tot) { b.classList.add('hidden'); return; }
+            b.classList.remove('hidden');
+            t.textContent = `${tot} photo${tot>1?'s':''} • ${c3} 360°`;
+        }
+
+        async function initApp() {
+            initTailwind();
+            try {
+                await openDB();
+                photos = await loadAllPhotosFromDB();
+            } catch (e) { photos = []; }
+            filterAndRender();
+            updateStorageIndicator();
+            updateStats();
+
+            document.addEventListener('keydown', e => {
+                if (e.key === 'Escape' && !document.getElementById('viewerModal').classList.contains('hidden')) closeViewer();
+            });
+
+            console.log('%c[Air360 v2] Ready — IndexedDB (thumbnails only) + floating export + clean reset', 'color:#64748b');
+        }
+
+        window.onload = initApp;
     </script>
-  </body>
+</body>
 </html>
