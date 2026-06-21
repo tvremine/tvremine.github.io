@@ -1,4 +1,4 @@
-# DJI Air 3S 360° Viewer - Simple PWA
+# Air360 - DJI Air 3S 360° Viewer - Simple PWA
 
 A lightweight, installable web app to view your DJI Air 3S (and similar) Sphere / 360° panoramas on iPhone. 
 
