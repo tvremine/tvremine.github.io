@@ -19,13 +19,18 @@
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=Space+Grotesk:wght@500;600&amp;display=swap');
         body { font-family: 'Inter', system_ui, sans-serif; }
         .font-display { font-family: 'Space Grotesk', 'Inter', system_ui, sans-serif; font-weight: 600; }
-        .photo-card { transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1); }
+        .photo-card { transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.2s cubic-bezier(0.4, 0.0, 0.2, 1); }
         .photo-card:hover { transform: translateY(-3px); }
         .pannellum-container { border-radius: 16px; overflow: hidden; background: #020617; }
+        .modal { animation: modalEnter 0.2s ease-out forwards; }
+        @keyframes modalEnter { from { opacity: 0; transform: translateY(20px) scale(0.98); } to { opacity: 1; transform: translateY(0) scale(1); } }
         .360-badge { background: linear-gradient(90deg, #22c55e, #16a34a); }
         .pano-badge { background: linear-gradient(90deg, #eab308, #ca8a04); }
+        .viewer-overlay { pointer-events: none; }
+        .viewer-overlay > * { pointer-events: auto; }
         .thumb { image-rendering: crisp-edges; }
         .empty-state { background: radial-gradient(circle at center, #1e2937 0%, #0f172a 70%); }
+        .storage-bar { height: 4px; background: linear-gradient(to right, #38bdf8, #0ea5e9); transition: width 0.3s ease; }
     </style>
 </head>
 <body class="bg-slate-950 text-slate-200 min-h-screen">
@@ -72,7 +77,7 @@
         <div class="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-y-4 mb-8">
             <div>
                 <h1 class="font-display text-4xl sm:text-5xl tracking-tighter font-semibold">Your 360° moments,<br>beautifully viewed.</h1>
-                <p class="mt-2 text-lg text-slate-400 max-w-md">Import once. View instantly on future visits. Full images stored locally.</p>
+                <p class="mt-2 text-lg text-slate-400 max-w-md">Auto-detects DJI Air 3S Sphere panoramas. Persisted with thumbnails only • low storage.</p>
             </div>
         </div>
 
@@ -124,7 +129,7 @@
                 </svg>
             </div>
             <h3 class="font-semibold text-xl tracking-tight">No 360° photos yet</h3>
-            <p class="mt-2 text-slate-400 max-w-xs mx-auto">Import your DJI Sphere panoramas. They are stored locally so you can view them instantly next time.</p>
+            <p class="mt-2 text-slate-400 max-w-xs mx-auto">Import your DJI Sphere panoramas. They will be saved with thumbnails only (very low storage).</p>
         </div>
     </div>
 
@@ -164,10 +169,23 @@
             
             <div class="flex-1 relative bg-black p-2 sm:p-3" style="min-height: 320px;" id="viewerContainer">
                 <div id="viewer" class="w-full h-full rounded-2xl pannellum-container"></div>
+                
+                <!-- Floating Export Button -->
+                <button onclick="exportCurrentView()" class="absolute bottom-4 right-4 z-10 flex items-center gap-x-2 bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700 text-white text-sm font-semibold px-4 h-11 rounded-3xl shadow-lg shadow-emerald-900/50 transition-all active:scale-[0.985]">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M17 13v6m-3-3h6M6 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4l2 2h10a2 2 0 012 2v3" />
+                    </svg>
+                    <span class="hidden sm:inline">Export View</span>
+                    <span class="sm:hidden">Save</span>
+                </button>
+                
+                <div id="viewerHint" class="viewer-overlay absolute bottom-6 left-1/2 -translate-x-1/2 bg-black/60 text-white text-[10px] px-3 py-1 rounded-full flex items-center gap-x-1.5 pointer-events-none">
+                    <span>Drag to look • Pinch to zoom</span>
+                </div>
             </div>
             
             <div class="px-5 py-3 text-[10px] text-center text-slate-500 border-t border-slate-800 bg-slate-950/50">
-                Powered by Pannellum • Full images stored locally on your device
+                Powered by Pannellum • Thumbnails stored locally • Full-res loaded on demand
             </div>
         </div>
     </div>
@@ -175,56 +193,48 @@
     <div id="toastContainer" class="fixed bottom-4 left-1/2 -translate-x-1/2 z-[60] flex flex-col gap-y-2 items-center"></div>
 
     <script>
+        // Tailwind config
         function initTailwind() {
             tailwind.config = { theme: { extend: { fontFamily: { 'display': ['Space Grotesk', 'Inter', 'system-ui', 'sans-serif'] } } } };
         }
 
+        // State
         let photos = [];
         let currentViewMode = '360';
         let currentViewer = null;
         let currentPhoto = null;
         let isAutoRotating = false;
+        let searchTerm = '';
         let db = null;
-        const DB_NAME = 'air360-db-v3';
+        const DB_NAME = 'air360-db-v2';
         const STORE_NAME = 'photos';
 
-        // ========== IndexedDB with full images ==========
+        // ========== IndexedDB ==========
         async function openDB() {
             return new Promise((resolve, reject) => {
                 const request = indexedDB.open(DB_NAME, 1);
                 request.onupgradeneeded = (e) => {
                     const db = e.target.result;
-                    if (!db.objectStoreNames.contains(STORE_NAME)) {
-                        db.createObjectStore(STORE_NAME, { keyPath: 'id' });
-                    }
+                    if (!db.objectStoreNames.contains(STORE_NAME)) db.createObjectStore(STORE_NAME, { keyPath: 'id' });
                 };
                 request.onsuccess = (e) => { db = e.target.result; resolve(db); };
                 request.onerror = (e) => reject(e.target.error);
             });
         }
 
-        async function savePhotoToDB(photo, imageBlob) {
+        async function savePhotoToDB(photo) {
             if (!db) await openDB();
             return new Promise((resolve, reject) => {
                 const tx = db.transaction(STORE_NAME, 'readwrite');
                 const store = tx.objectStore(STORE_NAME);
-                
                 const toStore = {
-                    id: photo.id,
-                    name: photo.name,
-                    width: photo.width,
-                    height: photo.height,
-                    aspectRatio: photo.aspectRatio,
-                    is360: photo.is360,
+                    id: photo.id, name: photo.name, width: photo.width, height: photo.height,
+                    aspectRatio: photo.aspectRatio, is360: photo.is360,
                     captureDate: photo.captureDate ? photo.captureDate.toISOString() : null,
-                    cameraMake: photo.cameraMake,
-                    cameraModel: photo.cameraModel,
-                    lastModified: photo.lastModified,
-                    thumbUrl: photo.thumbUrl,
-                    imageBlob: imageBlob,           // full image stored
+                    cameraMake: photo.cameraMake, cameraModel: photo.cameraModel,
+                    lastModified: photo.lastModified, thumbUrl: photo.thumbUrl,
                     importedAt: photo.importedAt || Date.now()
                 };
-                
                 const req = store.put(toStore);
                 req.onsuccess = () => resolve();
                 req.onerror = () => reject(req.error);
@@ -237,22 +247,13 @@
                 const tx = db.transaction(STORE_NAME, 'readonly');
                 const store = tx.objectStore(STORE_NAME);
                 const req = store.getAll();
-                
                 req.onsuccess = () => {
                     const stored = req.result || [];
-                    const restored = stored.map(p => {
-                        let fullUrl = null;
-                        if (p.imageBlob) {
-                            try {
-                                fullUrl = URL.createObjectURL(p.imageBlob);
-                            } catch (e) {}
-                        }
-                        return {
-                            ...p,
-                            captureDate: p.captureDate ? new Date(p.captureDate) : null,
-                            fullUrl: fullUrl
-                        };
-                    });
+                    const restored = stored.map(p => ({
+                        ...p,
+                        captureDate: p.captureDate ? new Date(p.captureDate) : null,
+                        fullUrl: null
+                    }));
                     resolve(restored);
                 };
                 req.onerror = () => reject(req.error);
@@ -283,24 +284,18 @@
             const el = document.getElementById('storageIndicator');
             const textEl = document.getElementById('storageText');
             if (!el || !textEl) return;
-            
             const count = photos.length;
             if (count === 0) { el.classList.add('hidden'); return; }
             el.classList.remove('hidden');
-            
             let bytes = 0;
-            photos.forEach(p => {
-                if (p.thumbUrl?.startsWith('data:')) bytes += Math.round(p.thumbUrl.length * 0.75);
-            });
+            photos.forEach(p => { if (p.thumbUrl?.startsWith('data:')) bytes += Math.round(p.thumbUrl.length * 0.75); });
             const kb = Math.round(bytes / 1024);
-            textEl.textContent = `${count} photo${count !== 1 ? 's' : ''} • ~${kb} KB thumbnails`;
+            textEl.textContent = `${count} photo${count !== 1 ? 's' : ''} • ~${kb} KB`;
         }
 
         async function clearAllPersistedData() {
-            if (!confirm('Clear ALL persisted photos from this device? This cannot be undone.')) return;
+            if (!confirm('Clear ALL persisted photos from this device?')) return;
             await clearAllFromDB();
-            // Also revoke any object URLs
-            photos.forEach(p => { if (p.fullUrl?.startsWith('blob:')) URL.revokeObjectURL(p.fullUrl); });
             photos = [];
             filterAndRender();
             updateStorageIndicator();
@@ -343,8 +338,8 @@
                                 if (v.getUint32(h) === 0x45786966 && v.getUint16(h + 4) === 0x0000) {
                                     const t = h + 6;
                                     const le = v.getUint16(t) === 0x4949;
-                                    const g16 = oo => le ? v.getUint16(oo, true) : v.getUint16(oo);
-                                    const g32 = oo => le ? v.getUint32(oo, true) : v.getUint32(oo);
+                                    const g16 = o => le ? v.getUint16(o, true) : v.getUint16(o);
+                                    const g32 = o => le ? v.getUint32(o, true) : v.getUint32(o);
                                     const ifd = g32(t + 4) + t;
                                     let n = g16(ifd), eO = ifd + 2, exifP = null, mk = null, md = null;
                                     for (let i = 0; i < n; i++) {
@@ -391,78 +386,46 @@
         async function getPhotoInfo(file) {
             const fullUrl = URL.createObjectURL(file);
             const exif = await parseBasicExif(file);
-            const thumbUrl = await generateThumbnail(fullUrl).catch(() => fullUrl);
-            
-            return {
-                fullUrl,
-                thumbUrl,
-                width: 0, height: 0, aspectRatio: 0, // will be filled after image load
-                is360: false,
-                name: file.name,
-                lastModified: file.lastModified || Date.now(),
-                captureDate: exif.captureDate || null,
-                cameraMake: exif.make || null,
-                cameraModel: exif.model || null,
-                _fileForBlob: file   // temporary reference to create blob later
-            };
+            return new Promise((res, rej) => {
+                const img = new Image();
+                img.onload = async () => {
+                    const w = img.naturalWidth, h = img.naturalHeight, ar = w / h;
+                    const tu = await generateThumbnail(fullUrl).catch(() => fullUrl);
+                    res({
+                        fullUrl, thumbUrl: tu, width: w, height: h, aspectRatio: ar,
+                        is360: ar >= 1.82 && ar <= 2.22,
+                        name: file.name, lastModified: file.lastModified || Date.now(),
+                        captureDate: exif.captureDate || null,
+                        cameraMake: exif.make || null, cameraModel: exif.model || null
+                    });
+                };
+                img.onerror = () => { URL.revokeObjectURL(fullUrl); rej(new Error('load')); };
+                img.src = fullUrl;
+            });
         }
 
-        // Import - now stores full image
+        // Import
         async function importPhotos() {
             const input = document.getElementById('fileInput');
             input.onchange = async (e) => {
                 const files = Array.from(e.target.files || []);
                 if (!files.length) return;
-
                 showToast(`Processing ${files.length} photo${files.length > 1 ? 's' : ''}...`, 1800);
-
                 const added = [];
-                let detected = 0;
-
+                let det = 0;
                 for (let i = 0; i < files.length; i++) {
                     try {
                         const info = await getPhotoInfo(files[i]);
-                        
-                        // Load dimensions
-                        await new Promise((res) => {
-                            const img = new Image();
-                            img.onload = () => {
-                                info.width = img.naturalWidth;
-                                info.height = img.naturalHeight;
-                                info.aspectRatio = info.width / info.height;
-                                info.is360 = info.aspectRatio >= 1.82 && info.aspectRatio <= 2.22;
-                                res();
-                            };
-                            img.src = info.fullUrl;
-                        });
-
-                        const photo = {
-                            id: Date.now() + i + Math.random(),
-                            ...info,
-                            importedAt: Date.now()
-                        };
-
-                        if (photo.is360) detected++;
-
-                        // Get the actual blob for storage
-                        const imageBlob = await files[i].arrayBuffer().then(buf => new Blob([buf], { type: files[i].type }));
-                        
-                        added.push(photo);
-                        await savePhotoToDB(photo, imageBlob);
-
-                    } catch (err) {
-                        console.warn('Import failed for', files[i].name, err);
-                    }
+                        const p = { id: Date.now() + i + Math.random(), ...info, importedAt: Date.now(), fullUrl: info.fullUrl };
+                        if (p.is360) det++;
+                        added.push(p);
+                        await savePhotoToDB(p);
+                    } catch (_) {}
                 }
-
-                // Reload from DB so we have proper object URLs
-                photos = await loadAllPhotosFromDB();
+                photos.push(...added);
                 filterAndRender();
                 updateStorageIndicator();
-
-                let msg = `Added ${added.length} photo${added.length !== 1 ? 's' : ''}`;
-                if (detected) msg += ` • ${detected} detected as 360°`;
-                showToast(msg, 3200);
+                showToast(`Added ${added.length} photo${added.length !== 1 ? 's' : ''}${det ? ` • ${det} 360°` : ''}`, 3200);
                 input.value = '';
             };
             input.click();
@@ -472,78 +435,48 @@
             const grid = document.getElementById('photoGrid');
             const empty = document.getElementById('emptyState');
             const q = (document.getElementById('searchInput').value || '').toLowerCase().trim();
-
-            let filtered = photos;
-            if (currentViewMode === '360') filtered = filtered.filter(p => p.is360);
-            if (q) {
-                filtered = filtered.filter(p =>
-                    p.name.toLowerCase().includes(q) ||
-                    (p.captureDate && p.captureDate.toLocaleDateString().toLowerCase().includes(q))
-                );
-            }
-
+            let f = photos;
+            if (currentViewMode === '360') f = f.filter(p => p.is360);
+            if (q) f = f.filter(p => p.name.toLowerCase().includes(q) || (p.captureDate && p.captureDate.toLocaleDateString().toLowerCase().includes(q)));
             grid.innerHTML = '';
-            if (!filtered.length) {
-                empty.classList.remove('hidden');
-                grid.classList.add('hidden');
-                return;
-            }
-            empty.classList.add('hidden');
-            grid.classList.remove('hidden');
-
-            filtered.forEach(p => grid.appendChild(createPhotoCard(p)));
+            if (!f.length) { empty.classList.remove('hidden'); grid.classList.add('hidden'); return; }
+            empty.classList.add('hidden'); grid.classList.remove('hidden');
+            f.forEach(p => grid.appendChild(createPhotoCard(p)));
         }
 
         function createPhotoCard(p) {
             const el = document.createElement('div');
             el.className = 'photo-card bg-slate-900 border border-slate-800 rounded-3xl overflow-hidden cursor-pointer flex flex-col';
-            
-            const d = p.captureDate 
-                ? p.captureDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
-                : new Date(p.lastModified).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-            
-            const badge = p.is360 
-                ? `<div class="360-badge text-white text-[9px] font-bold px-3 py-px rounded-full">360° SPHERE</div>`
-                : `<div class="pano-badge text-white text-[9px] font-bold px-3 py-px rounded-full">PANORAMA</div>`;
-
+            const d = p.captureDate ? p.captureDate.toLocaleDateString('en-US',{month:'short',day:'numeric'}) : new Date(p.lastModified).toLocaleDateString('en-US',{month:'short',day:'numeric'});
+            const b = p.is360 ? `<div class="360-badge text-white text-[9px] font-bold px-3 py-px rounded-full">360° SPHERE</div>` : `<div class="pano-badge text-white text-[9px] font-bold px-3 py-px rounded-full">PANORAMA</div>`;
             el.innerHTML = `
                 <div class="relative aspect-[16/10] bg-slate-950 overflow-hidden">
                     <img src="${p.thumbUrl}" class="thumb w-full h-full object-cover">
-                    <div class="absolute top-3 right-3">${badge}</div>
-                    <div class="absolute bottom-3 left-3 bg-black/70 text-white text-[10px] font-mono px-2 py-px rounded">
-                        ${p.width}×${p.height}
-                    </div>
-                    <button onclick="event.stopImmediatePropagation(); deletePhoto(${p.id});" 
-                            class="absolute top-3 left-3 w-7 h-7 flex items-center justify-center bg-black/60 hover:bg-red-600/90 rounded-full opacity-0 group-hover:opacity-100 transition-all">×</button>
+                    <div class="absolute top-3 right-3">${b}</div>
+                    <div class="absolute bottom-3 left-3 bg-black/70 text-white text-[10px] font-mono px-2 py-px rounded">${p.width}×${p.height}</div>
+                    <button onclick="event.stopImmediatePropagation(); deletePhoto(${p.id});" class="absolute top-3 left-3 w-7 h-7 flex items-center justify-center bg-black/60 hover:bg-red-600/90 rounded-full opacity-0 group-hover:opacity-100">×</button>
                 </div>
                 <div class="p-3.5 flex-1 flex flex-col">
                     <div class="font-medium text-sm leading-tight line-clamp-2">${p.name}</div>
-                    <div class="mt-auto pt-2 flex justify-between text-[10px] text-slate-500">
-                        <div>${d}</div>
-                        <div class="font-mono">${(p.aspectRatio || 0).toFixed(2)}:1</div>
-                    </div>
-                </div>
-            `;
+                    <div class="mt-auto pt-2 flex justify-between text-[10px] text-slate-500"><div>${d}</div><div class="font-mono">${(p.aspectRatio||0).toFixed(2)}:1</div></div>
+                </div>`;
             el.onclick = () => openViewer(p.id);
             return el;
         }
 
-        async function deletePhoto(id) {
-            if (!confirm('Remove this photo from the list?')) return;
-            const idx = photos.findIndex(p => p.id === id);
-            if (idx < 0) return;
-
-            if (photos[idx].fullUrl?.startsWith('blob:')) {
-                URL.revokeObjectURL(photos[idx].fullUrl);
-            }
-            await deletePhotoFromDB(id);
-            photos.splice(idx, 1);
+        function deletePhoto(id) {
+            if (!confirm('Remove from list?')) return;
+            const i = photos.findIndex(x => x.id === id);
+            if (i < 0) return;
+            if (photos[i].fullUrl?.startsWith('blob:')) URL.revokeObjectURL(photos[i].fullUrl);
+            photos.splice(i, 1);
+            deletePhotoFromDB(id);
             filterAndRender();
             updateStorageIndicator();
         }
 
         function clearAllPhotos() {
-            if (!photos.length || !confirm(`Clear current session list (${photos.length} photos)?`)) return;
+            if (!photos.length || !confirm(`Clear current session (${photos.length} photos)?`)) return;
             photos.forEach(p => { if (p.fullUrl?.startsWith('blob:')) URL.revokeObjectURL(p.fullUrl); });
             photos = [];
             filterAndRender();
@@ -551,139 +484,163 @@
         }
 
         // Viewer
-        function openViewer(id) {
+        async function openViewer(id) {
             const p = photos.find(x => x.id === id);
             if (!p) return;
             currentPhoto = p;
 
             const modal = document.getElementById('viewerModal');
             document.getElementById('viewerTitle').textContent = p.name;
-
             const ds = p.captureDate ? p.captureDate.toLocaleDateString() : new Date(p.lastModified).toLocaleDateString();
             const cam = (p.cameraMake || p.cameraModel) ? ` • ${p.cameraMake || ''} ${p.cameraModel || ''}` : '';
-            document.getElementById('viewerMeta').innerHTML = `${p.width}×${p.height} • ${(p.aspectRatio || 0).toFixed(2)}:1 • ${ds}${cam}`;
+            document.getElementById('viewerMeta').innerHTML = `${p.width}×${p.height} • ${(p.aspectRatio||0).toFixed(2)}:1 • ${ds}${cam}`;
 
             modal.classList.remove('hidden');
             modal.classList.add('flex');
 
             if (currentViewer) { try { currentViewer.destroy(); } catch(e){} currentViewer = null; }
-            const container = document.getElementById('viewer');
-            container.innerHTML = '';
+            const v = document.getElementById('viewer');
+            v.innerHTML = '';
 
             if (!p.fullUrl) {
-                container.innerHTML = `<div class="flex items-center justify-center h-full text-center p-8 text-red-400">Full resolution image not available.<br>Please re-import this photo.</div>`;
+                showFullResPrompt(p, v);
                 return;
             }
+            initPannellum(p, v);
+        }
 
-            initPannellum(p, container);
+        function showFullResPrompt(p, container) {
+            container.innerHTML = `
+                <div class="flex flex-col items-center justify-center h-full text-center p-8">
+                    <div class="w-20 h-20 mb-6 rounded-2xl overflow-hidden border border-slate-700"><img src="${p.thumbUrl}" class="w-full h-full object-cover"></div>
+                    <h3 class="text-xl font-semibold mb-2">Full resolution needed</h3>
+                    <p class="text-slate-400 max-w-xs mb-6">We store only thumbnails to save space. Pick the original file from your library.</p>
+                    <div class="bg-slate-800 border border-slate-700 rounded-2xl px-4 py-3 mb-6 w-full max-w-xs text-left">
+                        <div class="text-xs text-slate-400 mb-1">Look for:</div>
+                        <div class="font-mono text-sm break-all">${p.name}</div>
+                    </div>
+                    <button onclick="selectFullResForCurrentPhoto()" class="bg-white text-slate-950 font-semibold px-8 h-12 rounded-3xl flex items-center gap-x-2 active:scale-[0.985]">
+                        Select from Photos
+                    </button>
+                    <button onclick="closeViewer()" class="mt-4 text-sm text-slate-400">Cancel</button>
+                </div>`;
+        }
+
+        async function selectFullResForCurrentPhoto() {
+            if (!currentPhoto) return;
+            const inp = document.createElement('input');
+            inp.type = 'file';
+            inp.accept = 'image/*';
+            inp.onchange = async (e) => {
+                const f = e.target.files[0];
+                if (!f) return;
+                try {
+                    const url = URL.createObjectURL(f);
+                    currentPhoto.fullUrl = url;
+                    const c = document.getElementById('viewer');
+                    c.innerHTML = '';
+                    initPannellum(currentPhoto, c);
+                    showToast('Full resolution loaded for this session', 2200);
+                } catch (_) { showToast('Failed to load file'); }
+            };
+            inp.click();
         }
 
         function initPannellum(p, container) {
             try {
                 currentViewer = pannellum.viewer('viewer', {
-                    type: "equirectangular",
-                    panorama: p.fullUrl,
-                    autoLoad: true,
-                    hfov: 95,
-                    minHfov: 20,
-                    maxHfov: 140,
-                    pitch: 0,
-                    yaw: 0,
-                    friction: 0.7,
-                    keyboardZoom: false,
-                    mouseZoom: true,
-                    showControls: false,
-                    draggable: true,
-                    touchPan: true
+                    type: "equirectangular", panorama: p.fullUrl, autoLoad: true,
+                    hfov: 95, minHfov: 20, maxHfov: 140, pitch: 0, yaw: 0, friction: 0.7,
+                    keyboardZoom: false, mouseZoom: true, showControls: false, draggable: true, touchPan: true
                 });
-            } catch (err) {
-                container.innerHTML = `<div class="flex items-center justify-center h-full text-red-400">Failed to load 360° viewer</div>`;
+            } catch (_) {
+                container.innerHTML = `<div class="flex items-center justify-center h-full text-red-400">Failed to load 360 viewer</div>`;
             }
         }
 
         function closeViewer() {
-            const modal = document.getElementById('viewerModal');
+            const m = document.getElementById('viewerModal');
             if (currentViewer) { try { currentViewer.destroy(); } catch(e){} currentViewer = null; }
             isAutoRotating = false;
-            modal.classList.remove('flex');
-            modal.classList.add('hidden');
+            m.classList.remove('flex'); m.classList.add('hidden');
             currentPhoto = null;
         }
 
-        function resetView() {
-            if (currentViewer) currentViewer.lookAt(0, 0, 95, 600);
-        }
+        function resetView() { if (currentViewer) currentViewer.lookAt(0, 0, 95, 600); }
 
         function toggleAutoRotate() {
             if (!currentViewer) return;
-            const btn = document.getElementById('autoRotateBtn');
-            const txt = document.getElementById('autoRotateText');
-            
+            const b = document.getElementById('autoRotateBtn');
+            const t = document.getElementById('autoRotateText');
             isAutoRotating = !isAutoRotating;
             if (isAutoRotating) {
                 currentViewer.startAutoRotate(1.1);
-                btn?.classList.add('!bg-emerald-600', '!border-emerald-500');
-                if (txt) txt.textContent = 'Stop';
+                b?.classList.add('!bg-emerald-600', '!border-emerald-500');
+                if (t) t.textContent = 'Stop';
             } else {
                 currentViewer.stopAutoRotate();
-                btn?.classList.remove('!bg-emerald-600', '!border-emerald-500');
-                if (txt) txt.textContent = 'Auto Rotate';
+                b?.classList.remove('!bg-emerald-600', '!border-emerald-500');
+                if (t) t.textContent = 'Auto Rotate';
             }
         }
 
-        function showToast(msg, ms = 2600) {
+        function exportCurrentView() {
+            if (!currentViewer || !currentPhoto) { showToast('No active view'); return; }
+            try {
+                const c = document.getElementById('viewer');
+                const can = c.querySelector('canvas');
+                if (!can) throw new Error();
+                const u = can.toDataURL('image/jpeg', 0.94);
+                const a = document.createElement('a');
+                a.download = `Air360_${currentPhoto.name.replace(/\.[^/.]+$/, '')}_${Date.now()}.jpg`;
+                a.href = u; a.click();
+                showToast('View exported ✓', 1800);
+            } catch (_) { showToast('Export failed'); }
+        }
+
+        function showToast(m, ms = 2600) {
             const c = document.getElementById('toastContainer');
             const t = document.createElement('div');
             t.className = `max-w-[92%] px-5 py-3 rounded-2xl bg-slate-800 border border-slate-700 text-sm flex items-center gap-x-3`;
-            t.innerHTML = `<div class="flex-1">${msg}</div><button class="text-slate-400">×</button>`;
+            t.innerHTML = `<div class="flex-1">${m}</div><button class="text-slate-400">×</button>`;
             t.querySelector('button').onclick = () => t.remove();
             c.appendChild(t);
-            setTimeout(() => { if (t.parentNode) t.remove(); }, ms);
+            setTimeout(() => t.parentNode && t.remove(), ms);
         }
 
-        function setViewMode(mode) {
-            currentViewMode = mode;
-            const b360 = document.getElementById('btn360');
-            const bAll = document.getElementById('btnAll');
-            b360.classList.toggle('bg-slate-800', mode === '360');
-            b360.classList.toggle('text-white', mode === '360');
-            bAll.classList.toggle('bg-slate-800', mode === 'all');
-            bAll.classList.toggle('text-white', mode === 'all');
+        function setViewMode(m) {
+            currentViewMode = m;
+            document.getElementById('btn360').classList.toggle('bg-slate-800', m === '360');
+            document.getElementById('btn360').classList.toggle('text-white', m === '360');
+            document.getElementById('btnAll').classList.toggle('bg-slate-800', m === 'all');
+            document.getElementById('btnAll').classList.toggle('text-white', m === 'all');
             filterAndRender();
         }
 
         function updateStats() {
-            const bar = document.getElementById('statsBar');
-            const txt = document.getElementById('statsText');
-            const total = photos.length;
-            const c360 = photos.filter(p => p.is360).length;
-            if (!total) { bar.classList.add('hidden'); return; }
-            bar.classList.remove('hidden');
-            txt.textContent = `${total} photo${total > 1 ? 's' : ''} • ${c360} 360°`;
+            const b = document.getElementById('statsBar');
+            const t = document.getElementById('statsText');
+            const tot = photos.length, c3 = photos.filter(p => p.is360).length;
+            if (!tot) { b.classList.add('hidden'); return; }
+            b.classList.remove('hidden');
+            t.textContent = `${tot} photo${tot>1?'s':''} • ${c3} 360°`;
         }
 
         async function initApp() {
             initTailwind();
-            
             try {
                 await openDB();
                 photos = await loadAllPhotosFromDB();
-            } catch (e) {
-                console.warn('IndexedDB error, starting fresh', e);
-                photos = [];
-            }
-            
+            } catch (e) { photos = []; }
             filterAndRender();
             updateStorageIndicator();
             updateStats();
 
-            document.addEventListener('keydown', (e) => {
-                if (e.key === 'Escape' && !document.getElementById('viewerModal').classList.contains('hidden')) {
-                    closeViewer();
-                }
+            document.addEventListener('keydown', e => {
+                if (e.key === 'Escape' && !document.getElementById('viewerModal').classList.contains('hidden')) closeViewer();
             });
 
-            console.log('%c[Air360 v3] Ready — Full images stored in IndexedDB for instant viewing', 'color:#64748b');
+            console.log('%c[Air360 v2] Ready — IndexedDB (thumbnails only) + floating export + clean reset', 'color:#64748b');
         }
 
         window.onload = initApp;

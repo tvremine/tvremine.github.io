@@ -1,0 +1,9 @@
+Archive version 1:
+  works as intended, but all photos must be manually re-imported after every use
+
+Archive Version 2:
+  Still requires manually re-importing, but added some new features
+
+Current index.html
+  Removed the Save Still Image button, this was bugged and only would save a black image, never a screenshot of the 360 pano
+  Added full photo persistance. Requires a lot more storage but should alleviate manual re-importing photos after each use.
