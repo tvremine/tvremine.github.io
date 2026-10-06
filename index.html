@@ -56,7 +56,7 @@
                     <div id="storageIndicator" class="hidden sm:flex items-center gap-x-2 px-3 py-1.5 bg-slate-900 rounded-3xl border border-slate-800 text-xs">
                         <div class="flex items-center gap-x-1.5">
                             <div class="w-2 h-2 bg-sky-400 rounded-full"></div>
-                            <span id="storageText" class="font-mono text-sky-400">0 photos • 0 KB</span>
+                            <span id="storageText" class="font-mono text-sky-400 whitespace-nowrap">0 photos<span class="hidden md:inline"> • 0 KB</span></span>
                         </div>
                     </div>
                     
@@ -127,7 +127,7 @@
                     <path stroke-linecap="round" stroke-linejoin="round" d="M3 9a2 2 0 012-2 2 2 0 012 2m-2 2v10a2 2 0 01-2-2V9zm4 0v10a2 2 0 002 2h10a2 2 0 002-2V9a2 2 0 00-2-2m-4 0v10" />
                 </svg>
             </div>
-            <h3 class="font-semibold text-xl tracking-tight">No 360° photos yet</h3>
+            <h3 id="emptyTitle" class="font-semibold text-xl tracking-tight">No 360° photos yet</h3>
             <p class="mt-2 text-slate-400 max-w-xs mx-auto">Import your DJI Sphere panoramas. They are stored locally so you can view them instantly next time.</p>
         </div>
     </div>
@@ -296,7 +296,7 @@
                 if (p.thumbUrl?.startsWith('data:')) bytes += Math.round(p.thumbUrl.length * 0.75);
             });
             const kb = Math.round(bytes / 1024);
-            textEl.textContent = `${count} photo${count !== 1 ? 's' : ''} • ~${kb} KB thumbnails`;
+            textEl.innerHTML = `${count} photo${count !== 1 ? 's' : ''}<span class="hidden md:inline"> • ~${kb} KB thumbnails</span>`;
         }
 
         async function clearAllPersistedData() {
@@ -490,6 +490,9 @@
 
             grid.innerHTML = '';
             if (!filtered.length) {
+                const scope = currentViewMode === '360' ? '360° photos' : 'photos';
+                const query = document.getElementById('searchInput').value.trim();
+                document.getElementById('emptyTitle').textContent = q ? `No ${scope} match "${query}"` : `No ${scope} yet`;
                 empty.classList.remove('hidden');
                 grid.classList.add('hidden');
                 return;
@@ -612,7 +615,7 @@
         function closeViewer() {
             const modal = document.getElementById('viewerModal');
             if (currentViewer) { try { currentViewer.destroy(); } catch(e){} currentViewer = null; }
-            isAutoRotating = false;
+            setAutoRotate(false);
             modal.classList.remove('flex');
             modal.classList.add('hidden');
             currentPhoto = null;
@@ -622,21 +625,20 @@
             if (currentViewer) currentViewer.lookAt(0, 0, 95, 600);
         }
 
-        function toggleAutoRotate() {
-            if (!currentViewer) return;
+        function setAutoRotate(on) {
+            isAutoRotating = on;
             const btn = document.getElementById('autoRotateBtn');
             const txt = document.getElementById('autoRotateText');
-            
-            isAutoRotating = !isAutoRotating;
-            if (isAutoRotating) {
-                currentViewer.startAutoRotate(1.1);
-                btn?.classList.add('!bg-emerald-600', '!border-emerald-500');
-                if (txt) txt.textContent = 'Stop';
-            } else {
-                currentViewer.stopAutoRotate();
-                btn?.classList.remove('!bg-emerald-600', '!border-emerald-500');
-                if (txt) txt.textContent = 'Auto Rotate';
-            }
+            btn?.classList.toggle('!bg-emerald-600', on);
+            btn?.classList.toggle('!border-emerald-500', on);
+            if (txt) txt.textContent = on ? 'Stop' : 'Auto Rotate';
+        }
+
+        function toggleAutoRotate() {
+            if (!currentViewer) return;
+            setAutoRotate(!isAutoRotating);
+            if (isAutoRotating) currentViewer.startAutoRotate(1.1);
+            else currentViewer.stopAutoRotate();
         }
 
         function showToast(msg, ms = 2600) {
