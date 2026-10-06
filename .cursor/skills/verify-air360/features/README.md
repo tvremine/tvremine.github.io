@@ -12,8 +12,8 @@ This directory is the maintained source for verifying what an Air360 user can do
 ## Driving conventions
 
 - Every `drive.sh` call starts with empty IndexedDB unless it passes `--profile`. Import what a recipe needs inside the same call.
-- The default viewport is 1280x800. The 360° viewer only renders below 640 px wide, so viewer recipes pass `--viewport 402x874` (iPhone 16 Pro, the device the README targets).
-- Prefer ARIA roles and names (`click button "All"`), then visible text (`click-text sphere-2to1.jpg`). Use `click-css` only for the controls `SKILL.md` lists as nameless.
+- The default viewport is 1280x800. Repeat layout-sensitive recipes, such as the viewer, at `--viewport 402x874` (iPhone 16 Pro in portrait, the device the README targets) and `--viewport 844x390` (the same phone in landscape).
+- Prefer ARIA roles and names (`click button "All"`), then visible text (`click-text sphere-2to1.jpg`). Every control in `SKILL.md`'s handle list has a name, so `click-css` is a last resort.
 - After `import`, wait for the `Added N photo` toast before any `idb` step. The app saves to IndexedDB after the file chooser closes.
 - Every Clear and delete asks `confirm()`. Put `dialogs accept` before the click, or the click is cancelled.
 
@@ -38,6 +38,6 @@ Each feature file starts with an H1 title and one paragraph describing the user-
 
 - [Import photos](./import-photos.md) covers the file chooser, 360° detection, card labels, and the saved records.
 - [360° viewer](./viewer.md) covers opening a photo, dragging, Reset view, Auto Rotate, and the three ways to close.
-- [Filter and search](./filter-and-search.md) covers the 360° Only and All toggle and the filename search.
-- [Saved library](./saved-library.md) covers reload persistence, the storage pill, deleting one photo, Clear Session, and Clear Data.
+- [Filter and search](./filter-and-search.md) covers the 360° Only and All toggle, the filename and capture-date search, and the empty state.
+- [Saved library](./saved-library.md) covers reload persistence, the storage pill and stats line, deleting one photo, Clear Session, and Clear Data.
 - [Pages and links](./pages-and-links.md) covers the Waypoint Aerial link, the PWA manifest, and the two archived versions.

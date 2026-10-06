@@ -5,7 +5,7 @@ description: Drive the Air360 360° photo viewer (tvremine.github.io, a static s
 
 # Verify Air360
 
-Air360 is one static page, `index.html`, plus `manifest.json`. GitHub Pages serves both from the repo root with no build step. The page pulls Tailwind from `cdn.tailwindcss.com` and Pannellum 2.5.7 from `cdn.jsdelivr.net`, so the box needs internet access. Users pick photos with the "Import Photos" button. The app stores each photo in IndexedDB (`air360-db-v3`, store `photos`) and opens 2:1 photos in a Pannellum viewer. `archive_version1.html` and `archive_version2.html` are older copies, reachable only by URL.
+Air360 is one static page, `index.html`, plus `manifest.json`. GitHub Pages serves both from the repo root with no build step. The page pulls Tailwind from `cdn.tailwindcss.com` and Pannellum 2.5.7 from `cdn.jsdelivr.net`, so the box needs internet access. Users pick photos with the "Import Photos" button. The app stores each photo in IndexedDB (`air360-db-v3`, store `photos`) and opens any photo card in a Pannellum viewer. `archive_version1.html` and `archive_version2.html` are older copies, reachable only by URL.
 
 There is no backend, no account, and no test suite. The only surface is the browser page, and this skill drives it with Playwright.
 
@@ -70,33 +70,38 @@ Options: `--run ID` (defaults to `$VERIFY_AIR360_RUN`), `--name NAME` (the evide
 | `click ROLE NAME`, `fill ROLE NAME VALUE` | Act on a control by ARIA role and exact accessible name. |
 | `click-text TEXT` | Click the first visible element containing TEXT. Photo cards have no role, so open one by its filename. |
 | `card FILENAME ROLE NAME` | Click a control inside one photo card, e.g. `card wide-4to1.jpg button ×`. |
-| `click-css SELECTOR` | Last resort for controls with no accessible name (listed below). |
+| `click-css SELECTOR` | Last resort for a control with no accessible name. Every control listed below has one. |
 | `drag SELECTOR DX DY`, `click-at X Y`, `press KEY` | Mouse drag from the element's center, mouse click at viewport coordinates, keyboard press. |
+| `hover SELECTOR` | Move the mouse over an element, e.g. `hover '.photo-card:has-text("sphere-2to1.jpg")'` to reveal its ×. |
 | `dialogs accept` | Answer later `confirm()` prompts with OK. The default is Cancel. |
 | `expect ROLE NAME`, `expect-text`, `expect-no-text`, `expect-count-text TEXT N`, `expect-css`, `expect-url` | Assertions against what is visible. `expect-css` also fails on a zero-size element. |
+| `expect-style SELECTOR PROP VALUE` | The first match's computed CSS property equals VALUE exactly, retried until transitions finish. Use it for what only shows as colour or opacity. |
 | `expect-redraw SELECTOR MS` | The element's pixels change within MS, e.g. the panorama moving. |
 | `idb`, `idb-count N` | Read the `photos` store and save it to `idb-<n>.json`. Never creates the database. |
 | `screenshot NAME`, `aria NAME` | Save `NAME.png` and an ARIA snapshot `NAME.aria.yml`. |
 
-Stable handles in `index.html` at commit 6b75762:
+Stable handles in `index.html`, as of the `fix-air360-bugs` changes (PR #2):
 
-- Buttons by name: "Import Photos", "360° Only", "All", "Clear Session", and "Clear Data" (only at 640 px wide or more).
+- Buttons by name at every width: "Import Photos", "360° Only", "All", "Clear Session", and "Clear Data".
 - Search: `textbox "Search filenames or dates..."` (the placeholder is its only name).
 - Header link: `link "Waypoint Aerial"` (only at 640 px wide or more).
-- Viewer at phone width: `button "Reset view"`. Auto Rotate has no name below 640 px, so use `#autoRotateBtn`.
-- Viewer close button, which has no name at any width: `#viewerModal button[onclick="closeViewer()"]`. `press Escape` closes it too.
-- Card labels as text: `360° SPHERE`, `PANORAMA`, `WIDTH×HEIGHT`, and `N.NN:1`.
+- Viewer: `button "Close viewer"`, and `button "Auto Rotate"`, whose name changes to "Stop" while rotating, at every width. The Reset button is named "Reset" at 640 px or wider and "Reset view" (its `title`) below that. `press Escape` and a click on the dark backdrop also close the viewer.
+- Card controls: the delete button is `card FILENAME button ×`. It shows on hover with a mouse and always on touch screens.
+- Card labels as text: `360° SPHERE` (CSS class `.sphere-badge`, green), `PANORAMA` (`.pano-badge`, amber), `WIDTH×HEIGHT`, and `N.NN:1`. The card date is the EXIF capture date when the photo has one (`Jun 14` for the sphere fixture), otherwise the file's modified date.
+- Stats line under the controls: `N photos • M 360°`. It refreshes after every import, delete, and clear, and it is hidden when the list is empty.
+- Header storage pill: `N photos • ~K KB thumbnails` at 768 px or wider, just `N photos` below that.
+- Empty state title: `No 360° photos yet` or `No photos yet` for the active view, and `No 360° photos match "QUERY"` or `No photos match "QUERY"` after a search.
 - Toasts as text: `Added N photo(s) • M detected as 360°` and `All persisted data cleared`.
 
 Fixtures written by `start.sh` (source: `$S/make-fixtures.py`):
 
 | File | Size | Expected label |
 | --- | --- | --- |
-| `sphere-2to1.jpg` | 4096×2048, ratio 2.00, EXIF Make `DJI`, DateTimeOriginal `2026:06:14 10:30:00` | `360° SPHERE` |
+| `sphere-2to1.jpg` | 4096×2048, ratio 2.00, EXIF Make `DJI`, DateTimeOriginal `2026:06:14 10:30:00` | `360° SPHERE`, dated `Jun 14`, found by searching `6/14/2026` |
 | `wide-4to1.jpg` | 4000×1000, ratio 4.00 | `PANORAMA` |
 | `photo-4to3.jpg` | 1600×1200, ratio 1.33 | `PANORAMA` |
 
-The sphere has a grid and `SPHERE yaw N°` labels, so a screenshot shows which way the viewer faces. Opening the viewer and choosing Reset view both put `SPHERE yaw 0°` near the middle.
+The sphere has a grid and `SPHERE yaw N°` labels, so a screenshot shows which way the viewer faces. Opening the viewer and choosing Reset both put `SPHERE yaw 0°` near the middle.
 
 The feature map in `features/README.md` lists the user-facing features and the exact steps for each. Read it before driving, and drive every entry point a feature file lists.
 

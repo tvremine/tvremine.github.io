@@ -19,6 +19,7 @@ Steps:
   card FILENAME ROLE NAME        click a control inside the photo card that shows FILENAME
   click-at X Y                   mouse click at viewport coordinates, e.g. a backdrop corner
   drag SELECTOR DX DY            mouse-drag from the element's center by DX,DY pixels
+  hover SELECTOR                 move the mouse over the first matching element, e.g. a card
   fill ROLE NAME VALUE           type VALUE into the field with that role and name
   press KEY                      keyboard press on the page, e.g. Escape
   dialogs accept|dismiss         answer later confirm() dialogs (default: dismiss)
@@ -28,6 +29,7 @@ Steps:
   expect-count-text TEXT N       exactly N visible elements contain TEXT
   expect-css SELECTOR            the element is visible and has a non-zero size
   expect-redraw SELECTOR MS      the element's pixels differ between now and MS later
+  expect-style SELECTOR PROP VAL the first match's computed PROP equals VAL (waits out transitions)
   expect-url TEXT                the page URL contains TEXT
   idb                            dump the air360-db-v3 "photos" store to idb-<n>.json (read-only)
   idb-count N                    the store holds exactly N records
@@ -81,7 +83,7 @@ def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--run", default=os.environ.get("VERIFY_AIR360_RUN"), help="run id printed by start.sh")
     ap.add_argument("--name", required=True, help="evidence subdirectory, e.g. import-photos")
-    ap.add_argument("--viewport", default="1280x800", help="WxH; below 640 wide the header hides 'Waypoint Aerial' and the storage pill")
+    ap.add_argument("--viewport", default="1280x800", help="WxH; below 640 wide the header hides 'Waypoint Aerial' and the Reset label")
     ap.add_argument("--profile", help="reuse a browser profile (IndexedDB) across drive.sh calls in this run")
     ap.add_argument("steps", nargs="+")
     args = ap.parse_args()
@@ -170,6 +172,8 @@ def main():
                 page.mouse.down()
                 page.mouse.move(x + int(rest[1]), y + int(rest[2]), steps=15)
                 page.mouse.up()
+            elif cmd == "hover":
+                page.locator(rest[0]).first.hover()
             elif cmd == "fill":
                 page.get_by_role(rest[0], name=rest[1], exact=True).fill(rest[2])
             elif cmd == "press":
@@ -196,6 +200,8 @@ def main():
                 page.wait_for_timeout(int(rest[1]))
                 if loc.screenshot() == before:
                     raise AssertionError(f"{rest[0]} did not change in {rest[1]} ms")
+            elif cmd == "expect-style":
+                expect(page.locator(rest[0]).first).to_have_css(rest[1], rest[2])
             elif cmd == "expect-url":
                 expect(page).to_have_url(re.compile(re.escape(rest[0])))
             elif cmd in ("idb", "idb-count"):
