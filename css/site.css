@@ -136,6 +136,7 @@ p { text-wrap: pretty; }
   color: var(--fg);
   cursor: pointer;
 }
+.menu-btn svg[hidden] { display: none !important; }
 .nav-mobile {
   display: none;
   border-top: 1px solid var(--border);
