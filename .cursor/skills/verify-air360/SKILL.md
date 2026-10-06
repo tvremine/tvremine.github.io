@@ -1,11 +1,11 @@
 ---
 name: verify-air360
-description: Drive the Air360 360° photo viewer (tvremine.github.io, a static single-page PWA in index.html) in headless Chromium and capture proof. Use when you change index.html or manifest.json, or need to show that importing, 360° detection, the Pannellum viewer, filtering, search, or IndexedDB persistence work the way a user sees them.
+description: Drive the Air360 360° photo viewer (tvremine.github.io/360/, a static PWA in 360/index.html) in headless Chromium and capture proof. Use when you change 360/index.html or 360/manifest.json, or need to show that importing, 360° detection, the Pannellum viewer, filtering, search, or IndexedDB persistence work the way a user sees them.
 ---
 
 # Verify Air360
 
-Air360 is one static page, `index.html`, plus `manifest.json`. GitHub Pages serves both from the repo root with no build step. The page pulls Tailwind from `cdn.tailwindcss.com` and Pannellum 2.5.7 from `cdn.jsdelivr.net`, so the box needs internet access. Users pick photos with the "Import Photos" button. The app stores each photo in IndexedDB (`air360-db-v3`, store `photos`) and opens any photo card in a Pannellum viewer. `archive_version1.html` and `archive_version2.html` are older copies, reachable only by URL.
+Air360 is one static page, `360/index.html`, plus `360/manifest.json`. The site root is the Waypoint Aerial homepage. GitHub Pages serves the files with no build step. The viewer pulls Tailwind from `cdn.tailwindcss.com` and Pannellum 2.5.7 from `cdn.jsdelivr.net`, so the box needs internet access. Users pick photos with the "Import Photos" button. The app stores each photo in IndexedDB (`air360-db-v3`, store `photos`) and opens any photo card in a Pannellum viewer. `archive_version1.html` and `archive_version2.html` are older copies, reachable only by URL.
 
 There is no backend, no account, and no test suite. The only surface is the browser page, and this skill drives it with Playwright.
 
@@ -31,7 +31,7 @@ export VERIFY_AIR360_RUN=$RUN_ID
 echo "$URL"                     # e.g. http://127.0.0.1:4360
 ```
 
-`start.sh` runs `python3 -m http.server <port> --bind 127.0.0.1 --directory <repo root>` on the first free port from 4360 up. Set `VERIFY_AIR360_PORT` to force a port. It writes the PID, port, and URL to `/tmp/verify-air360/<run-id>/` and generates fixture photos in `/tmp/verify-air360/<run-id>/fixtures/`. It exits 0 and prints `RUN_ID`, `URL`, `STATE`, and `EVIDENCE` once `GET /` returns the `<title>Air360 • DJI 360 Viewer</title>` page. If the server exits or the title never appears within 10 seconds, it prints the server log and exits 1.
+`start.sh` runs `python3 -m http.server <port> --bind 127.0.0.1 --directory <repo root>` on the first free port from 4360 up. Set `VERIFY_AIR360_PORT` to force a port. It writes the PID, port, and URL to `/tmp/verify-air360/<run-id>/` and generates fixture photos in `/tmp/verify-air360/<run-id>/fixtures/`. It exits 0 and prints `RUN_ID`, `URL`, `STATE`, and `EVIDENCE` once `GET /360/` returns the `<title>Air360 • DJI 360 Viewer</title>` page. If the server exits or the title never appears within 10 seconds, it prints the server log and exits 1.
 
 Why a plain static server: the repo has no `_config.yml`, `Gemfile`, or `package.json`, and no file has Jekyll front matter, so GitHub Pages copies every file unchanged. On 2026-10-05 the live `https://tvremine.github.io/` returned bytes identical to `index.html` at commit 6b75762, and both servers send `manifest.json` as `application/json`. What this server does not reproduce: HTTPS, GitHub's 404 page, and Safari on iOS. The README's own local recipe is VS Code Live Server on port 5500, which needs a GUI editor, so this skill does not use it.
 
@@ -47,7 +47,7 @@ Run this first, and again whenever a step fails in a way you do not understand. 
 $S/doctor.sh                    # uses $VERIFY_AIR360_RUN, or: $S/doctor.sh <run-id>
 ```
 
-It checks that the PID is alive and is our `http.server` for this port and directory, that `ss` shows that PID owning the port, that `GET /` shows the Air360 title, that the served `index.html` matches the checkout byte for byte (and prints the commit), that `manifest.json` parses with `short_name` "Air360", that the three fixtures exist, that both CDNs answer, and that Playwright can launch Chromium. It ends with `doctor: healthy (...)` and exit 0, or `doctor: NOT healthy` and exit 1. Do not drive an unhealthy instance.
+It checks that the PID is alive and is our `http.server` for this port and directory, that `ss` shows that PID owning the port, that `GET /` shows the Waypoint Aerial homepage, that `GET /360/` shows the Air360 title, that the served `360/index.html` matches the checkout byte for byte (and prints the commit), that `360/manifest.json` parses with `short_name` "Air360", that the three fixtures exist, that both CDNs answer, and that Playwright can launch Chromium. It ends with `doctor: healthy (...)` and exit 0, or `doctor: NOT healthy` and exit 1. Do not drive an unhealthy instance.
 
 ## Drive
 
@@ -55,7 +55,7 @@ It checks that the PID is alive and is our `http.server` for this port and direc
 
 ```bash
 $S/drive.sh --name import-photos \
-  "goto /" \
+  "goto /360/" \
   "import sphere-2to1.jpg wide-4to1.jpg photo-4to3.jpg" \
   "expect-text 'Added 3 photos • 1 detected as 360°'" \
   "aria after-import" "screenshot after-import"
@@ -65,7 +65,7 @@ Options: `--run ID` (defaults to `$VERIFY_AIR360_RUN`), `--name NAME` (the evide
 
 | Step | What it does |
 | --- | --- |
-| `goto /` | Open the app. Use `/archive_version1.html` or `/archive_version2.html` for the archives. |
+| `goto /360/` | Open the viewer. `goto /` opens the Waypoint Aerial homepage. Use `/archive_version1.html` or `/archive_version2.html` for the archives. |
 | `import FILE...` | Click "Import Photos" and pick the files in the real file chooser. Bare names resolve to the run's fixtures. |
 | `click ROLE NAME`, `fill ROLE NAME VALUE` | Act on a control by ARIA role and exact accessible name. |
 | `click-text TEXT` | Click the first visible element containing TEXT. Photo cards have no role, so open one by its filename. |
@@ -80,7 +80,7 @@ Options: `--run ID` (defaults to `$VERIFY_AIR360_RUN`), `--name NAME` (the evide
 | `idb`, `idb-count N` | Read the `photos` store and save it to `idb-<n>.json`. Never creates the database. |
 | `screenshot NAME`, `aria NAME` | Save `NAME.png` and an ARIA snapshot `NAME.aria.yml`. |
 
-Stable handles in `index.html`, as of the `fix-air360-bugs` changes (PR #2):
+Stable handles in `360/index.html`, as of the `fix-air360-bugs` changes (PR #2). The header link now goes to `/`, the Waypoint Aerial homepage:
 
 - Buttons by name at every width: "Import Photos", "360° Only", "All", "Clear Session", and "Clear Data".
 - Search: `textbox "Search filenames or dates..."` (the placeholder is its only name).

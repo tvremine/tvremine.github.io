@@ -1,0 +1,17 @@
+{
+  "name": "Air360 Viewer - DJI 360 Panoramas",
+  "short_name": "Air360",
+  "description": "View and manage 360° sphere panoramas from your DJI Air 3S drone. Auto-detects equirectangular photos for immersive viewing with swipe and pinch controls.",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#0f172a",
+  "theme_color": "#0ea5e9",
+  "orientation": "any",
+  "icons": [
+    {
+      "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='45' fill='%230ea5e9'/%3E%3Cpath d='M30 35 Q50 20 70 35 Q70 65 50 80 Q30 65 30 35' fill='white'/%3E%3C/svg%3E",
+      "sizes": "192x192",
+      "type": "image/svg+xml"
+    }
+  ]
+}

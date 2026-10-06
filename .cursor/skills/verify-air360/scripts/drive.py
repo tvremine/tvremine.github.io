@@ -109,7 +109,7 @@ def main():
         log.flush()
 
     rev = subprocess.run(["git", "-C", str(REPO_ROOT), "rev-parse", "--short", "HEAD"], capture_output=True, text=True).stdout.strip()
-    dirty = subprocess.run(["git", "-C", str(REPO_ROOT), "status", "--porcelain", "--", "index.html", "manifest.json"], capture_output=True, text=True).stdout.strip()
+    dirty = subprocess.run(["git", "-C", str(REPO_ROOT), "status", "--porcelain", "--", "360/index.html", "360/manifest.json"], capture_output=True, text=True).stdout.strip()
     note(f"# run={args.run} name={args.name} url={base_url} rev={rev}{' (site files modified)' if dirty else ''} viewport={args.viewport} profile={args.profile or '-'}")
 
     dialog_mode = {"value": "dismiss"}

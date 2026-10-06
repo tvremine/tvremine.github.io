@@ -22,7 +22,7 @@ Preconditions:
 - The baseline preconditions in `README.md` hold.
 - The browser context is fresh (no `--profile`), so the library starts empty.
 
-- **Empty start.** Open the app. Run `$S/drive.sh --name import-photos "goto /" "expect-text 'No 360° photos yet'" "idb-count 0" "aria before" "screenshot before" ...` with the steps below appended to the same call. The empty state shows and the store has no records.
+- **Empty start.** Open the app. Run `$S/drive.sh --name import-photos "goto /360/" "expect-text 'No 360° photos yet'" "idb-count 0" "aria before" "screenshot before" ...` with the steps below appended to the same call. The empty state shows and the store has no records.
 - **Pick photos.** Choose "Import Photos" and select all three fixtures. Step `"import sphere-2to1.jpg wide-4to1.jpg photo-4to3.jpg"`. The toast `Added 3 photos • 1 detected as 360°` appears: step `"expect-text 'Added 3 photos • 1 detected as 360°'"`.
 - **Stats line.** Step `"expect-text '3 photos • 1 360°'"`. No reload is needed.
 - **360° label.** The default "360° Only" view shows just the sphere. Steps `"expect-count-text '360° SPHERE' 1"`, `"expect-style .sphere-badge background-image 'linear-gradient(90deg, rgb(34, 197, 94), rgb(22, 163, 74))'"` (the green badge), `"expect-text 4096×2048"`, `"expect-text 2.00:1"`, `"expect-text 'Jun 14'"` (the EXIF date, not today's), `"expect-no-text wide-4to1.jpg"`.

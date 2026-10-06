@@ -20,12 +20,14 @@ check "pid $PID is our http.server on $PORT serving $REPO_ROOT" bash -c \
   "tr '\0' ' ' </proc/$PID/cmdline | grep -q 'http.server $PORT --bind 127.0.0.1 --directory $REPO_ROOT'"
 check "port $PORT listening, owned by pid $PID" bash -c \
   "ss -ltnpH 'sport = :$PORT' | grep -q 'pid=$PID,'"
-check "GET $URL/ shows the Air360 title" bash -c \
-  "curl -fsS '$URL/' | grep -q '<title>Air360 • DJI 360 Viewer</title>'"
-check "served index.html matches the checkout" bash -c \
-  "[ \"\$(curl -fsS '$URL/index.html' | sha256sum)\" = \"\$(sha256sum <'$REPO_ROOT/index.html')\" ] && git -C '$REPO_ROOT' rev-parse --short HEAD"
-check "manifest.json parses, short_name Air360" bash -c \
-  "curl -fsS '$URL/manifest.json' | python3 -c 'import json,sys; assert json.load(sys.stdin)[\"short_name\"]==\"Air360\"'"
+check "GET $URL/ shows the Waypoint Aerial homepage" bash -c \
+  "curl -fsS '$URL/' | grep -q '<title>Waypoint Aerial — Precision from above.</title>'"
+check "GET $URL/360/ shows the Air360 title" bash -c \
+  "curl -fsS '$URL/360/' | grep -q '<title>Air360 • DJI 360 Viewer</title>'"
+check "served 360/index.html matches the checkout" bash -c \
+  "[ \"\$(curl -fsS '$URL/360/index.html' | sha256sum)\" = \"\$(sha256sum <'$REPO_ROOT/360/index.html')\" ] && git -C '$REPO_ROOT' rev-parse --short HEAD"
+check "360/manifest.json parses, short_name Air360" bash -c \
+  "curl -fsS '$URL/360/manifest.json' | python3 -c 'import json,sys; assert json.load(sys.stdin)[\"short_name\"]==\"Air360\"'"
 check "fixtures present" bash -c "ls '$STATE_DIR/fixtures/sphere-2to1.jpg' '$STATE_DIR/fixtures/wide-4to1.jpg' '$STATE_DIR/fixtures/photo-4to3.jpg' >/dev/null"
 # The page loads Tailwind and Pannellum from CDNs. Without them it renders unstyled and the viewer fails.
 check "CDN cdn.tailwindcss.com reachable" curl -fsSL -o /dev/null --max-time 10 https://cdn.tailwindcss.com
