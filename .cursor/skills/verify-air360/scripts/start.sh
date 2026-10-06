@@ -42,12 +42,12 @@ echo "$URL" >"$STATE_DIR/url"
 # Fixture photos for the import flow live in scratch state, not in the repo.
 "$PY" "$SKILL_DIR/scripts/make-fixtures.py" "$STATE_DIR/fixtures" >/dev/null
 
-# Ready when GET / returns the Air360 title. Fail fast if the server exits.
+# Ready when GET /360/ returns the Air360 title. The site root is the Waypoint homepage. Fail fast if the server exits.
 for _ in $(seq 1 50); do
   if ! kill -0 "$(cat "$STATE_DIR/server.pid")" 2>/dev/null; then
     echo "error: server exited. Log:" >&2; cat "$STATE_DIR/server.log" >&2; exit 1
   fi
-  if curl -fsS "$URL/" 2>/dev/null | grep -q '<title>Air360 • DJI 360 Viewer</title>'; then
+  if curl -fsS "$URL/360/" 2>/dev/null | grep -q '<title>Air360 • DJI 360 Viewer</title>'; then
     echo "RUN_ID=$RUN_ID"
     echo "URL=$URL"
     echo "STATE=$STATE_DIR"
@@ -56,6 +56,6 @@ for _ in $(seq 1 50); do
   fi
   sleep 0.2
 done
-echo "error: $URL never served the Air360 page within 10s. Log:" >&2
+echo "error: $URL/360/ never served the Air360 page within 10s. Log:" >&2
 cat "$STATE_DIR/server.log" >&2
 exit 1

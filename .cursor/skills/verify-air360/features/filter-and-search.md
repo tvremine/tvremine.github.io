@@ -24,14 +24,14 @@ Preconditions:
 - The baseline preconditions in `README.md` hold.
 - Each call imports all three fixtures first.
 
-- **Default view.** Run `$S/drive.sh --name filter-and-search "goto /" "import sphere-2to1.jpg wide-4to1.jpg photo-4to3.jpg" "expect-text 'Added 3 photos'" "expect-count-text .jpg 1" "expect-no-text wide-4to1.jpg" ...` with the steps below appended. Only `sphere-2to1.jpg` shows.
+- **Default view.** Run `$S/drive.sh --name filter-and-search "goto /360/" "import sphere-2to1.jpg wide-4to1.jpg photo-4to3.jpg" "expect-text 'Added 3 photos'" "expect-count-text .jpg 1" "expect-no-text wide-4to1.jpg" ...` with the steps below appended. Only `sphere-2to1.jpg` shows.
 - **All.** Steps `"click button All"`, `"expect-count-text .jpg 3"`. All three cards show.
 - **Name match.** Steps `"fill textbox 'Search filenames or dates...' WIDE"`, `"expect-text wide-4to1.jpg"`, `"expect-no-text sphere-2to1.jpg"`. Matching ignores case.
 - **No match.** Steps `"fill textbox 'Search filenames or dates...' volcano"`, `"expect-text 'No photos match \"volcano\"'"`, `"expect-count-text .jpg 0"`.
 - **Clear.** Steps `"fill textbox 'Search filenames or dates...' ''"`, `"expect-count-text .jpg 3"`.
 - **Date match.** Steps `"fill textbox 'Search filenames or dates...' 6/14/2026"`, `"expect-count-text .jpg 1"`, `"expect-text sphere-2to1.jpg"`, then `"fill textbox 'Search filenames or dates...' ''"`. Only the sphere has an EXIF date.
 - **Back to 360° Only.** Steps `"click button '360° Only'"`, `"expect-count-text .jpg 1"`.
-- **Empty titles.** In a separate call, steps `"goto /"`, `"click button All"`, `"expect-text 'No photos yet'"`, `"click button '360° Only'"`, `"expect-text 'No 360° photos yet'"`.
+- **Empty titles.** In a separate call, steps `"goto /360/"`, `"click button All"`, `"expect-text 'No photos yet'"`, `"click button '360° Only'"`, `"expect-text 'No 360° photos yet'"`.
 - **Proof.** Steps `"fill textbox 'Search filenames or dates...' sphere"`, `"aria search-sphere"`, `"screenshot search-sphere"`. The artifacts show the query and the single sphere card.
 
 ## Gotchas
