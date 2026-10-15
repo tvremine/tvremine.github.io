@@ -85,9 +85,9 @@
   }
 
   const rangeLabels = {
-    events: "$650–$2,400",
-    property: "$325–$750",
-    inspection: "$450–$1,800",
+    events: "$250–$750",
+    property: "$125–$325",
+    inspection: "$175–$400+",
     mapping: "$800–$3,500",
     cinema: "Custom"
   };
