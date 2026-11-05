@@ -9,6 +9,7 @@ Live root: [tvremine.github.io](https://tvremine.github.io/)
 - `/` — Waypoint Aerial landing page
 - `/work/` — filterable gallery
 - `/services/` — events, property, inspection, mapping, cinematic
+- `/production/` — freelance event production and project management
 - `/about/` — the studio
 - `/about-me/` — Thomas ReMine, for hiring managers
 - `/contact/` — quote request, stored in the browser

@@ -103,13 +103,36 @@
   if (form) {
     const select = form.querySelector("#service");
     const range = form.querySelector("[data-range]");
+    const messageLabel = form.querySelector("label[for='message']");
+    const messageField = form.querySelector("#message");
     const params = new URLSearchParams(window.location.search);
     const initial = params.get("service");
-    if (initial && rangeLabels[initial]) select.value = initial;
+    if (initial && /^[a-z]+$/.test(initial) && select.querySelector("option[value='" + initial + "']")) {
+      select.value = initial;
+    }
 
     function paintRange() {
       const id = select.value;
-      range.innerHTML = "Typical range for " + titles[id] + ": <strong>" + rangeLabels[id] + "</strong>";
+      const production = id === "production";
+      if (messageLabel) {
+        messageLabel.textContent = production ? "What do you need produced?" : "What do you need in the air?";
+      }
+      if (messageField) {
+        messageField.placeholder = production
+          ? "Show type, dates, headcount, and whether you also want aerial coverage."
+          : "Deliverables, call time, any airspace notes.";
+      }
+      if (production) {
+        range.textContent = "Quoted from the brief. No published rate — send the show and we’ll reply with a number.";
+        return;
+      }
+      const title = titles[id];
+      const label = rangeLabels[id];
+      if (!title || !label) {
+        range.textContent = "";
+        return;
+      }
+      range.innerHTML = "Typical range for " + title + ": <strong>" + label + "</strong>";
     }
     select.addEventListener("change", paintRange);
     paintRange();
