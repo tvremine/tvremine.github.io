@@ -394,18 +394,21 @@ input[aria-invalid="true"], textarea[aria-invalid="true"] { border-color: var(--
 .contact-row a:hover { color: var(--fg); border-bottom-color: var(--primary); }
 .resume-summary { max-width: 44rem; margin: 1.75rem 0 0; font-size: 1.05rem; line-height: 1.7; color: var(--muted); }
 .resume-tools { display: flex; flex-wrap: wrap; gap: 0.6rem; margin-top: 1.5rem; }
-.proof { display: grid; gap: 0.9rem; margin-top: 2.5rem; }
-@media (min-width: 800px) { .proof { grid-template-columns: 1fr 1fr; } }
+.proof { display: grid; gap: 0.9rem; margin-top: 1rem; grid-template-columns: minmax(0, 1fr); }
+@media (min-width: 800px) { .proof { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); } }
 .proof article {
+  min-width: 0;
   background: linear-gradient(180deg, rgb(23 32 51 / 0.55), var(--surface));
   border-radius: 18px;
   padding: 1.35rem 1.3rem 1.25rem;
   box-shadow: var(--shadow-border);
 }
-.proof .who { margin: 0; color: var(--primary); font-size: 0.72rem; font-weight: 600; letter-spacing: 0.16em; text-transform: uppercase; }
-.proof h2 { margin-top: 0.45rem; font-family: var(--display); font-size: 2rem; font-weight: 500; line-height: 1; }
-.proof .where { margin: 0.35rem 0 0; color: var(--faint); font-size: 0.85rem; }
-.proof p { margin: 0.85rem 0 0; color: var(--muted); font-size: 0.92rem; line-height: 1.6; }
+.proof .who { margin: 0; color: var(--primary); font-size: 0.72rem; font-weight: 600; letter-spacing: 0.16em; text-transform: uppercase; overflow-wrap: anywhere; }
+.proof h2 { margin-top: 0.45rem; font-family: var(--display); font-size: clamp(1.55rem, 5vw, 2rem); font-weight: 500; line-height: 1.08; overflow-wrap: break-word; }
+.proof .where { margin: 0.35rem 0 0; color: var(--faint); font-size: 0.85rem; overflow-wrap: break-word; }
+.proof p { margin: 0.85rem 0 0; color: var(--muted); font-size: 0.92rem; line-height: 1.6; overflow-wrap: break-word; }
+.proof-switch, .option-banner { margin: 0.15rem 0 0; color: var(--faint); font-size: 0.8rem; }
+.proof-switch a, .option-banner a { color: var(--fg); border-bottom: 1px solid var(--primary); }
 .section-label { margin: 3.25rem 0 1.1rem; font-size: 0.72rem; font-weight: 600; letter-spacing: 0.18em; text-transform: uppercase; color: var(--faint); }
 .timeline { margin: 0; padding: 0 0 0 1.35rem; list-style: none; border-left: 1px solid rgb(143 42 56 / 0.75); }
 .role { position: relative; padding: 0 0 2rem 0.9rem; }
@@ -467,4 +470,179 @@ input[aria-invalid="true"], textarea[aria-invalid="true"] { border-color: var(--
   .chip { background: #f3f3f3; color: #161616; }
   .role::before { box-shadow: 0 0 0 4px #fff; }
   a { text-decoration: none; }
+}
+
+/* Option A — photo fills the card. Text sits on a dark scrim; hover and keyboard focus reveal the photo.
+   Zoom matches .frame img / .work-card:hover img: scale(1.03), 400ms, var(--ease-smooth). */
+.proof-photos article {
+  position: relative;
+  isolation: isolate;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  overflow: hidden;
+  padding: 7.75rem 1.15rem 1.2rem;
+  background: #080c14;
+}
+@media (min-width: 640px) {
+  .proof-photos article { padding: 8.25rem 1.3rem 1.3rem; }
+}
+.proof-photo {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  object-fit: cover;
+  object-position: center 32%;
+  transform: scale(1);
+  transition: transform 400ms var(--ease-smooth);
+}
+.proof-scrim {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background: linear-gradient(
+    to bottom,
+    rgb(8 12 20 / 0.28) 0,
+    rgb(8 12 20 / 0.4) 4rem,
+    rgb(8 12 20 / 0.94) 6.7rem,
+    rgb(8 12 20 / 0.96) 100%
+  );
+  transition: opacity 400ms var(--ease-smooth);
+}
+.proof-copy {
+  position: relative;
+  z-index: 2;
+  transition: opacity 400ms var(--ease-smooth);
+}
+.proof-photos .who,
+.proof-photos h2,
+.proof-photos .where,
+.proof-photos .proof-copy p {
+  text-shadow: 0 1px 2px rgb(0 0 0 / 0.92), 0 10px 24px rgb(0 0 0 / 0.55);
+}
+.proof-photos h2 { color: #f7f3ee; }
+.proof-photos .proof-copy p { color: #e4e9f2; }
+.proof-photos .proof-copy .where { color: #d5dce8; }
+.proof-photos .proof-copy .who { color: #f8d6db; }
+.proof-card:focus-visible {
+  outline: 2px solid #f1ece4;
+  outline-offset: 3px;
+}
+.proof-card:hover .proof-photo,
+.proof-card:focus-visible .proof-photo { transform: scale(1.03); }
+.proof-card:hover .proof-copy,
+.proof-card:focus-visible .proof-copy { opacity: 0; }
+.proof-card:hover .proof-scrim,
+.proof-card:focus-visible .proof-scrim { opacity: 0; }
+/* Phones and other devices with no hover keep the text. A stuck :hover after a tap must not hide it. */
+@media (hover: none) {
+  .proof-card:hover .proof-photo,
+  .proof-card:focus-visible .proof-photo { transform: none; }
+  .proof-card:hover .proof-copy,
+  .proof-card:focus-visible .proof-copy { opacity: 1; }
+  .proof-card:hover .proof-scrim,
+  .proof-card:focus-visible .proof-scrim { opacity: 1; }
+}
+.proof-card.is-revealed .proof-photo { transform: scale(1.03); }
+.proof-card.is-revealed .proof-copy { opacity: 0; }
+.proof-card.is-revealed .proof-scrim { opacity: 0; }
+.proof-toggle {
+  display: none;
+  position: absolute;
+  top: 0.7rem;
+  right: 0.7rem;
+  z-index: 3;
+  align-items: center;
+  justify-content: center;
+  min-height: 2.75rem;
+  padding: 0 0.9rem;
+  border: 0;
+  border-radius: 999px;
+  background: rgb(8 12 20 / 0.82);
+  color: #f1ece4;
+  box-shadow: 0 0 0 1px rgb(241 236 228 / 0.28);
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+.proof-toggle .when-on { display: none; }
+.proof-card.is-revealed .proof-toggle .when-off { display: none; }
+.proof-card.is-revealed .proof-toggle .when-on { display: inline; }
+@media (hover: none) {
+  .proof-toggle { display: inline-flex; }
+}
+
+/* Option B — small thumbnail. The enlarged frame uses .proof-lightbox so the Work page dialog is unchanged. */
+.proof-head { display: flex; gap: 0.85rem; align-items: flex-start; }
+.proof-head-copy { min-width: 0; flex: 1; }
+.proof-head h2 { margin-top: 0.35rem; }
+.proof-thumb {
+  display: block;
+  flex: none;
+  width: 4.75rem;
+  height: 4.75rem;
+  padding: 0;
+  border: 0;
+  border-radius: 12px;
+  overflow: hidden;
+  background: var(--surface-2);
+  box-shadow: var(--shadow-border);
+  cursor: pointer;
+}
+.proof-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 400ms var(--ease-smooth);
+}
+.proof-thumb:hover img,
+.proof-thumb:focus-visible img { transform: scale(1.03); }
+@media (max-width: 359px) {
+  .proof-thumbs .proof-head { flex-direction: column; }
+  .proof-thumbs .proof-thumb { width: 7.5rem; height: 5rem; }
+}
+.proof-lightbox {
+  padding: 4.25rem 1rem 1.25rem;
+  /* Solid field. The shared Work lightbox stays translucent; this page has body copy behind the frame. */
+  background: #080c14;
+}
+.proof-lightbox figure { width: min(64rem, 100%); }
+.proof-lightbox img { max-height: min(76dvh, calc(100dvh - 8.5rem)); }
+.proof-lightbox figcaption {
+  flex-wrap: wrap;
+  row-gap: 0.2rem;
+  padding: 0.7rem 0.15rem 0.1rem;
+  background: #080c14;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .proof-photo, .proof-copy, .proof-scrim, .proof-thumb img { transition: none; }
+  .proof-card:hover .proof-photo,
+  .proof-card:focus-visible .proof-photo,
+  .proof-card.is-revealed .proof-photo,
+  .proof-thumb:hover img,
+  .proof-thumb:focus-visible img { transform: none; }
+}
+
+@media print {
+  .proof-photo, .proof-scrim, .proof-toggle, .proof-thumb { display: none !important; }
+  .proof-photos article {
+    background: #fff !important;
+    min-height: 0 !important;
+    padding: 1rem !important;
+  }
+  .proof-copy, .proof-photos .who, .proof-photos h2, .proof-photos .where, .proof-photos .proof-copy p {
+    opacity: 1 !important;
+    text-shadow: none !important;
+  }
+  .proof-photos h2 { color: #161616 !important; }
+  .proof-photos .proof-copy p { color: #333 !important; }
+  .proof-photos .proof-copy .where { color: #333 !important; }
+  .proof-photos .proof-copy .who { color: #8f2a38 !important; }
 }
