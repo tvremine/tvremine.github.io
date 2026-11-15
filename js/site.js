@@ -174,4 +174,98 @@
 
   const printBtn = document.querySelector("[data-print]");
   if (printBtn) printBtn.addEventListener("click", function () { window.print(); });
+
+  // Option A: on a device with no hover, a tap shows the photo and a second tap brings the text back.
+  const fineHover = window.matchMedia("(hover: hover)");
+  document.querySelectorAll(".proof-card").forEach(function (card) {
+    if (fineHover.matches) {
+      card.tabIndex = 0;
+      return;
+    }
+    const toggle = card.querySelector(".proof-toggle");
+    if (!toggle) return;
+    toggle.addEventListener("click", function () {
+      const on = card.classList.toggle("is-revealed");
+      toggle.setAttribute("aria-pressed", on ? "true" : "false");
+    });
+  });
+
+  // Option B: thumbnail opens a dialog. Focus stays inside until Esc, the close button, or the backdrop.
+  const proofDialog = document.querySelector("[data-proof-lightbox]");
+  if (proofDialog) {
+    const proofImg = proofDialog.querySelector("img");
+    const proofTitle = proofDialog.querySelector("[data-proof-title]");
+    const proofNote = proofDialog.querySelector("[data-proof-note]");
+    const proofClose = proofDialog.querySelector("[data-proof-close]");
+    let proofTrigger = null;
+    let proofInert = [];
+    let proofOverflow = "";
+
+    function proofFocusable() {
+      return Array.prototype.slice.call(proofDialog.querySelectorAll("button, a[href], [tabindex]:not([tabindex='-1'])")).filter(function (el) {
+        return !el.disabled && el.getAttribute("aria-hidden") !== "true";
+      });
+    }
+
+    function openProof(button) {
+      const img = button.querySelector("img");
+      proofImg.src = img ? img.getAttribute("src") : "";
+      proofImg.alt = button.getAttribute("data-full-alt") || "";
+      proofTitle.textContent = button.getAttribute("data-title") || "";
+      proofNote.textContent = button.getAttribute("data-note") || "";
+      proofTrigger = button;
+      proofOverflow = document.body.style.overflow;
+      proofDialog.hidden = false;
+      document.body.style.overflow = "hidden";
+      proofInert = [];
+      [document.querySelector(".site-header"), document.querySelector("main"), document.querySelector(".site-footer")].forEach(function (el) {
+        if (!el || el.contains(proofDialog)) return;
+        el.setAttribute("inert", "");
+        proofInert.push(el);
+      });
+      proofClose.focus();
+    }
+
+    function closeProof() {
+      if (proofDialog.hidden) return;
+      proofDialog.hidden = true;
+      proofImg.removeAttribute("src");
+      proofImg.alt = "";
+      document.body.style.overflow = proofOverflow;
+      proofInert.forEach(function (el) { el.removeAttribute("inert"); });
+      proofInert = [];
+      if (proofTrigger) proofTrigger.focus();
+    }
+
+    document.querySelectorAll("[data-proof-open]").forEach(function (button) {
+      button.addEventListener("click", function () { openProof(button); });
+    });
+    proofClose.addEventListener("click", closeProof);
+    proofDialog.addEventListener("click", function (event) {
+      if (event.target === proofDialog) closeProof();
+    });
+    document.addEventListener("keydown", function (event) {
+      if (proofDialog.hidden) return;
+      if (event.key === "Escape") {
+        event.preventDefault();
+        closeProof();
+        return;
+      }
+      if (event.key !== "Tab") return;
+      const items = proofFocusable();
+      if (!items.length) return;
+      const first = items[0];
+      const last = items[items.length - 1];
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
+      } else if (items.indexOf(document.activeElement) === -1) {
+        event.preventDefault();
+        first.focus();
+      }
+    });
+  }
 })();
