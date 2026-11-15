@@ -393,6 +393,8 @@ input[aria-invalid="true"], textarea[aria-invalid="true"] { border-color: var(--
 .contact-row a { color: var(--muted); border-bottom: 1px solid transparent; }
 .contact-row a:hover { color: var(--fg); border-bottom-color: var(--primary); }
 .resume-summary { max-width: 44rem; margin: 1.75rem 0 0; font-size: 1.05rem; line-height: 1.7; color: var(--muted); }
+.mission-label { margin: 1.7rem 0 0; font-size: 0.72rem; font-weight: 600; letter-spacing: 0.18em; text-transform: uppercase; color: var(--primary); }
+.resume-mission { max-width: 36rem; margin: 0.45rem 0 0; font-family: var(--display); font-size: clamp(1.45rem, 2.6vw, 1.85rem); font-weight: 500; line-height: 1.2; color: var(--fg); }
 .resume-tools { display: flex; flex-wrap: wrap; gap: 0.6rem; margin-top: 1.5rem; }
 .proof { display: grid; gap: 0.9rem; margin-top: 1rem; grid-template-columns: minmax(0, 1fr); }
 @media (min-width: 800px) { .proof { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); } }
@@ -466,6 +468,8 @@ input[aria-invalid="true"], textarea[aria-invalid="true"] { border-color: var(--
   .resume-intro { padding-top: 0; }
   .resume h1, .resume-role, .role h3, .proof h2, .lower h3 { color: #161616; }
   .resume-summary, .proof p, .role li, .contact-row, .contact-row a, .lower li { color: #333; }
+  .resume-mission { color: #161616; }
+  .mission-label { color: #8f2a38; }
   .proof article, .skill-group, .lower article { background: #fff; box-shadow: none; border: 1px solid #ddd; }
   .chip { background: #f3f3f3; color: #161616; }
   .role::before { box-shadow: 0 0 0 4px #fff; }
