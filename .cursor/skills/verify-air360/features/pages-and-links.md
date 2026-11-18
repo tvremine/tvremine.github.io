@@ -13,7 +13,7 @@ The 360° viewer lives at `/360/`. Its header link returns to the Waypoint Aeria
 
 ## How to get to it (user POV)
 
-- On the viewer, choose "Waypoint Aerial" in the header (hidden below 640 px wide).
+- On the viewer, choose "Back to Waypoint Aerial" at the top of the header. It stays visible on phones. Below 360 px the visible words shorten to "Waypoint Aerial".
 - On the homepage, choose "360° Viewer" in the header, or the same control in the mobile menu.
 - On the homepage, choose "About Me" in the menu, or the small "About Me" link in the footer.
 - In Safari on iPhone, open `/360/`, Share, then Add to Home Screen. The browser reads `/360/manifest.json`.
@@ -25,8 +25,9 @@ Preconditions:
 
 - The baseline preconditions in `README.md` hold.
 
-- **Home link.** Run `$S/drive.sh --name pages-and-links "goto /360/" "expect link 'Waypoint Aerial'" "click link 'Waypoint Aerial'" "expect-text 'Precision from above.'" "screenshot home"`. The browser stays on this server and lands on the homepage.
-- **Link hidden on phones.** Run `$S/drive.sh --name pages-and-links-phone --viewport 402x874 "goto /360/" "expect-no-text 'Waypoint Aerial'"`.
+- **Home link.** Run `$S/drive.sh --name pages-and-links "goto /360/" "expect link 'Back to Waypoint Aerial'" "click link 'Back to Waypoint Aerial'" "expect-text 'Precision from above.'" "screenshot home"`. The browser stays on this server and lands on the homepage.
+- **Link visible on a phone.** Run `$S/drive.sh --name pages-and-links-phone --viewport 375x812 "goto /360/" "expect link 'Back to Waypoint Aerial'" "expect-text 'Back to Waypoint Aerial'" "screenshot phone"`.
+- **Short label on a very small phone.** Run `$S/drive.sh --name pages-and-links-narrow --viewport 320x568 "goto /360/" "expect link 'Back to Waypoint Aerial'" "expect-text 'Waypoint Aerial'" "expect-no-text 'Back to Waypoint Aerial'" "screenshot narrow"`. The arrow and the words "Waypoint Aerial" are what you see. The accessible name stays "Back to Waypoint Aerial".
 - **Open the viewer from the homepage.** Run `$S/drive.sh --name open-viewer "goto /" "click link '360° Viewer'" "expect-text 'Your 360° moments'" "expect button 'Import Photos'" "screenshot viewer"`.
 - **About Me.** Run `$S/drive.sh --name about-me "goto /" "click-text 'About Me'" "expect-text 'Thomas ReMine'" "expect-text 'Project Manager, Production & Digital Execution'" "screenshot about-me"`. The first visible "About Me" is the menu link. The footer repeats it.
 - **Manifest.** Run `curl -fsS "$URL/360/manifest.json" | python3 -c 'import json,sys; m=json.load(sys.stdin); print(m["short_name"], m["display"], m["start_url"])'`. Output is `Air360 standalone ./index.html`.
