@@ -83,7 +83,7 @@ def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--run", default=os.environ.get("VERIFY_AIR360_RUN"), help="run id printed by start.sh")
     ap.add_argument("--name", required=True, help="evidence subdirectory, e.g. import-photos")
-    ap.add_argument("--viewport", default="1280x800", help="WxH; below 640 wide the header hides 'Waypoint Aerial' and the Reset label")
+    ap.add_argument("--viewport", default="1280x800", help="WxH; below 640 wide the Reset label is shortened")
     ap.add_argument("--profile", help="reuse a browser profile (IndexedDB) across drive.sh calls in this run")
     ap.add_argument("steps", nargs="+")
     args = ap.parse_args()

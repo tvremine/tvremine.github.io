@@ -84,8 +84,8 @@ Stable handles in `360/index.html`, as of the `fix-air360-bugs` changes (PR #2).
 
 - Buttons by name at every width: "Import Photos", "360° Only", "All", "Clear Session", and "Clear Data".
 - Search: `textbox "Search filenames or dates..."` (the placeholder is its only name).
-- Header link: `link "Waypoint Aerial"` (only at 640 px wide or more).
-- Viewer: `button "Close viewer"`, and `button "Auto Rotate"`, whose name changes to "Stop" while rotating, at every width. The Reset button is named "Reset" at 640 px or wider and "Reset view" (its `title`) below that. `press Escape` and a click on the dark backdrop also close the viewer.
+- Header link: `link "Back to Waypoint Aerial"` at every width. It is a real link to `/` on its own row at the top of the header. Below 360 px the visible words shorten to "Waypoint Aerial"; the accessible name stays "Back to Waypoint Aerial".
+- Viewer: `button "Close viewer"`, `button "Full screen"`, and `button "Auto Rotate"`, whose name changes to "Stop" while rotating, at every width. The Reset button is named "Reset" at 640 px or wider and "Reset view" (its `title`) below that. While the photo is full screen, `button "Exit full screen"` and `button "Save view"` sit on the picture. `press Escape` leaves full screen first, and closes the viewer when the picture is not full screen. A click on the dark backdrop also closes the viewer.
 - Card controls: the delete button is `card FILENAME button ×`. It shows on hover with a mouse and always on touch screens.
 - Card labels as text: `360° SPHERE` (CSS class `.sphere-badge`, green), `PANORAMA` (`.pano-badge`, amber), `WIDTH×HEIGHT`, and `N.NN:1`. The card date is the EXIF capture date when the photo has one (`Jun 14` for the sphere fixture), otherwise the file's modified date.
 - Stats line under the controls: `N photos • M 360°`. It refreshes after every import, delete, and clear, and it is hidden when the list is empty.

@@ -26,12 +26,39 @@
         .pano-badge { background: linear-gradient(90deg, #eab308, #ca8a04); }
         .thumb { image-rendering: crisp-edges; }
         .empty-state { background: radial-gradient(circle at center, #1e2937 0%, #0f172a 70%); }
+        /* iPhone Safari has no element Fullscreen API, so the stage fills the dialog instead. */
+        #viewerModal.fs-fallback { padding: 0 !important; }
+        #viewerModal.fs-fallback #viewerDialog {
+            width: 100%;
+            height: 100dvh;
+            max-width: none;
+            max-height: none;
+            border-radius: 0;
+            border-width: 0;
+        }
+        #viewerModal.fs-fallback #viewerHeader,
+        #viewerModal.fs-fallback #viewerFooter { display: none; }
+        #viewerModal.fs-fallback #viewerContainer { padding: 0; min-height: 0; }
+        #viewerStage.fs-active #viewer { border-radius: 0; }
+        #viewerFlash { opacity: 0; transition: opacity 160ms linear; background: #fff; }
+        #viewerFlash.is-on { opacity: 0.35; }
+        #viewerSaved { opacity: 0; transition: opacity 150ms linear; }
+        #viewerSaved.is-on { opacity: 1; }
     </style>
 </head>
 <body class="bg-slate-950 text-slate-200 min-h-screen">
     <!-- Header -->
     <header class="border-b border-slate-800 bg-slate-950/80 backdrop-blur-lg sticky top-0 z-40">
         <div class="max-w-6xl mx-auto px-4 sm:px-6">
+            <a href="/"
+               aria-label="Back to Waypoint Aerial"
+               class="inline-flex items-center gap-x-1.5 h-11 max-w-full -ml-2 px-2 text-sm font-medium text-slate-300 hover:text-white rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-sky-400">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 shrink-0 text-sky-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.25" aria-hidden="true">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
+                </svg>
+                <span class="whitespace-nowrap min-[360px]:hidden">Waypoint Aerial</span>
+                <span class="hidden min-[360px]:inline whitespace-nowrap">Back to Waypoint Aerial</span>
+            </a>
             <div class="flex items-center justify-between h-16">
                 <div class="flex items-center gap-x-3">
                     <div class="flex items-center gap-x-2.5">
@@ -47,11 +74,7 @@
                     </div>
                 </div>
                 
-                <div class="flex items-center gap-x-3 text-sm">
-                    <a href="/"
-                       class="hidden sm:inline-flex items-center text-xs px-3 py-1.5 rounded-2xl border border-slate-800 text-slate-300 hover:text-white hover:bg-slate-800 transition-colors">
-                        Waypoint Aerial
-                    </a>
+                <div class="flex items-center gap-x-3 text-sm shrink-0">
                     <!-- Storage Indicator -->
                     <div id="storageIndicator" class="hidden sm:flex items-center gap-x-2 px-3 py-1.5 bg-slate-900 rounded-3xl border border-slate-800 text-xs">
                         <div class="flex items-center gap-x-1.5">
@@ -134,31 +157,39 @@
 
     <!-- Viewer Modal -->
     <div id="viewerModal" onclick="if (event.target.id === 'viewerModal') closeViewer()" class="hidden fixed inset-0 z-50 bg-black/90 flex items-center justify-center p-2 sm:p-4">
-        <div onclick="event.stopImmediatePropagation()" class="bg-slate-900 w-full max-w-[1100px] rounded-3xl overflow-hidden border border-slate-700 shadow-2xl flex flex-col h-[95dvh] sm:max-h-[92vh]">
+        <div id="viewerDialog" onclick="event.stopImmediatePropagation()" class="bg-slate-900 w-full max-w-[1100px] rounded-3xl overflow-hidden border border-slate-700 shadow-2xl flex flex-col h-[95dvh] sm:max-h-[92vh]">
             
-            <div class="flex items-center justify-between px-5 py-4 border-b border-slate-800 bg-slate-950/70">
+            <div id="viewerHeader" class="flex items-center justify-between px-3 sm:px-5 py-3 sm:py-4 border-b border-slate-800 bg-slate-950/70 gap-x-2">
                 <div class="min-w-0 flex-1">
                     <div id="viewerTitle" class="font-semibold text-lg tracking-tight truncate"></div>
-                    <div id="viewerMeta" class="text-xs text-slate-400 font-mono"></div>
+                    <div id="viewerMeta" class="text-xs text-slate-400 font-mono truncate"></div>
                 </div>
                 
-                <div class="flex items-center gap-x-2 flex-shrink-0">
-                    <button onclick="resetView()" class="flex items-center gap-x-1.5 text-xs font-medium px-4 h-9 rounded-2xl border border-slate-700 hover:bg-slate-800 active:bg-slate-700 transition-colors" title="Reset view">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.058 11H1M12 3v2m0 16v2m9-9H15m-6 0a8.002 8.002 0 01-1.357-1.357" />
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M20 12a8 8 0 01-8 8m0-16a8 8 0 018 8" />
+                <div class="flex items-center gap-x-1.5 sm:gap-x-2 flex-shrink-0">
+                    <button onclick="resetView()" class="flex items-center gap-x-1.5 text-xs font-medium px-2.5 sm:px-4 h-11 sm:h-9 rounded-2xl border border-slate-700 hover:bg-slate-800 active:bg-slate-700 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-400 focus-visible:ring-inset" title="Reset view">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="-8 -8 286.98 340.2" fill="none" aria-hidden="true">
+                            <g transform="translate(-13.590000, 154.610000) scale(100.0, -100.0)">
+                                <path stroke="currentColor" stroke-width="0.32" stroke-linejoin="round" stroke-linecap="round" fill="none" d="M 1.5813,-1.0189 L 1.4554,-1.0065 L 1.3368,-0.9755 L 1.2269,-0.9259 L 1.1264,-0.8589 L 1.0364,-0.7757 L 0.9588,-0.6793 L 0.8947,-0.5736 L 0.8479,-0.4619 L 0.8196,-0.3493 L 0.8131,-0.2392 L 0.8270,-0.1349 L 0.8628,-0.0389 L 0.9172,0.0478 L 0.9909,0.1232 L 1.0802,0.1867 L 1.1827,0.2374 L 1.2953,0.2751 L 1.4155,0.2997 L 1.5410,0.3115 L 1.6697,0.3125 L 1.6707,-0.2649 L 2.7457,0.4934 L 1.6925,1.4461 L 1.6905,0.8899 L 1.5120,0.8881 L 1.3306,0.8710 L 1.1471,0.8329 L 0.9639,0.7717 L 0.7845,0.6826 L 0.6152,0.5613 L 0.4649,0.4057 L 0.3452,0.2176 L 0.2674,0.0051 L 0.2359,-0.2176 L 0.2492,-0.4371 L 0.2999,-0.6440 L 0.3798,-0.8343 L 0.4844,-1.0087 L 0.6129,-1.1678 L 0.7657,-1.3100 L 0.9436,-1.4293 L 1.1420,-1.5189 L 1.3514,-1.5743 L 1.5609,-1.5959 L 1.7630,-1.5897 L 1.9543,-1.5621 L 2.1348,-1.5195 L 1.9826,-0.9623 L 1.8469,-0.9952 L 1.7126,-1.0142 Z" />
+                            </g>
                         </svg>
                         <span class="hidden sm:inline">Reset</span>
                     </button>
                     
-                    <button onclick="toggleAutoRotate()" id="autoRotateBtn" class="flex items-center gap-x-1.5 text-xs font-medium px-4 h-9 rounded-2xl border border-slate-700 hover:bg-slate-800 active:bg-slate-700 transition-colors">
+                    <button onclick="toggleAutoRotate()" id="autoRotateBtn" class="flex items-center gap-x-1.5 text-xs font-medium px-2.5 sm:px-4 h-11 sm:h-9 rounded-2xl border border-slate-700 hover:bg-slate-800 active:bg-slate-700 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-400 focus-visible:ring-inset">
                         <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.25">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M14.25 9.75L16.5 12l-2.25 2.25m-4.5 0L7.5 12l2.25-2.25M6 20.25h12A2.25 2.25 0 0020.25 18V6A2.25 2.25 0 0018 3.75H6A2.25 2.25 0 003.75 6v12A2.25 2.25 0 006 20.25z" />
                         </svg>
                         <span id="autoRotateText" class="sr-only sm:not-sr-only">Auto Rotate</span>
                     </button>
+
+                    <button onclick="enterFullscreen()" id="fullscreenBtn" aria-label="Full screen" aria-pressed="false" class="flex items-center justify-center gap-x-1.5 text-xs font-medium w-11 sm:w-auto sm:px-4 h-11 sm:h-9 rounded-2xl border border-slate-700 hover:bg-slate-800 active:bg-slate-700 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-400 focus-visible:ring-inset">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.25" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 3.75v4.5m0-4.5h4.5m-4.5 0L9 9M20.25 3.75h-4.5m4.5 0v4.5m0-4.5L15 9M3.75 20.25v-4.5m0 4.5h4.5m-4.5 0L9 15M20.25 20.25h-4.5m4.5 0v-4.5m0 4.5L15 15" />
+                        </svg>
+                        <span class="hidden md:inline">Full screen</span>
+                    </button>
                     
-                    <button onclick="closeViewer()" aria-label="Close viewer" class="w-9 h-9 flex items-center justify-center text-slate-400 hover:text-white hover:bg-slate-800 rounded-2xl transition-colors">
+                    <button onclick="closeViewer()" aria-label="Close viewer" class="w-11 h-11 sm:w-9 sm:h-9 flex items-center justify-center text-slate-400 hover:text-white hover:bg-slate-800 rounded-2xl transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-400 focus-visible:ring-inset">
                         <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6h12v12" />
                         </svg>
@@ -166,11 +197,27 @@
                 </div>
             </div>
             
-            <div class="flex-1 relative bg-black p-2 sm:p-3" style="min-height: min(320px, 50vh);" id="viewerContainer">
-                <div id="viewer" class="w-full h-full rounded-2xl pannellum-container"></div>
+            <div class="flex-1 relative bg-black p-2 sm:p-3 min-h-0" style="min-height: min(320px, 50vh);" id="viewerContainer">
+                <div id="viewerStage" class="relative w-full h-full">
+                    <div id="viewer" class="w-full h-full rounded-2xl pannellum-container"></div>
+                    <div id="fsChrome" class="hidden pointer-events-none absolute inset-0 z-10">
+                        <div id="viewerFlash" class="absolute inset-0" aria-hidden="true"></div>
+                        <button onclick="saveView()" id="saveViewBtn" aria-label="Save view" class="pointer-events-auto absolute top-3 left-3 w-11 h-11 flex items-center justify-center rounded-2xl border border-slate-700 bg-slate-950/75 text-slate-200 hover:text-white hover:bg-slate-800 backdrop-blur-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-400 focus-visible:ring-inset">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M7.5 11.25L12 15.75m0 0l4.5-4.5M12 15.75V3" />
+                            </svg>
+                        </button>
+                        <button onclick="leaveFullscreen()" id="exitFullscreenBtn" aria-label="Exit full screen" class="pointer-events-auto absolute top-3 right-3 w-11 h-11 flex items-center justify-center rounded-2xl border border-slate-700 bg-slate-950/75 text-slate-200 hover:text-white hover:bg-slate-800 backdrop-blur-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-400 focus-visible:ring-inset">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.25" aria-hidden="true">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                        </button>
+                        <p id="viewerSaved" role="status" class="absolute bottom-5 left-1/2 -translate-x-1/2 px-3 py-1.5 rounded-full bg-slate-950/80 border border-slate-700 text-xs text-white"></p>
+                    </div>
+                </div>
             </div>
             
-            <div class="px-5 py-3 text-[10px] text-center text-slate-500 border-t border-slate-800 bg-slate-950/50">
+            <div id="viewerFooter" class="px-5 py-3 text-[10px] text-center text-slate-500 border-t border-slate-800 bg-slate-950/50">
                 Powered by Pannellum • Full images stored locally on your device
             </div>
         </div>
@@ -188,6 +235,8 @@
         let currentViewer = null;
         let currentPhoto = null;
         let isAutoRotating = false;
+        let fallbackFullscreen = false;
+        let viewerResizeQueued = false;
         let db = null;
         const DB_NAME = 'air360-db-v3';
         const STORE_NAME = 'photos';
@@ -602,20 +651,222 @@
                     yaw: 0,
                     friction: 0.7,
                     keyboardZoom: false,
+                    // Escape (27) is left out so this page, not Pannellum, handles leaving full screen.
+                    capturedKeyNumbers: [16, 17, 37, 38, 39, 40, 61, 65, 68, 83, 87, 107, 109, 173, 187, 189],
                     mouseZoom: true,
                     showControls: false,
                     draggable: true,
                     touchPan: true
                 });
+                currentViewer.on('load', queueViewerResize);
             } catch (err) {
                 container.innerHTML = `<div class="flex items-center justify-center h-full text-red-400">Failed to load 360° viewer</div>`;
             }
         }
 
+        function viewerStage() {
+            return document.getElementById('viewerStage');
+        }
+
+        function nativeFullscreenElement() {
+            return document.fullscreenElement || document.webkitFullscreenElement || null;
+        }
+
+        function viewerIsFullscreen() {
+            return fallbackFullscreen || nativeFullscreenElement() === viewerStage();
+        }
+
+        function queueViewerResize() {
+            if (viewerResizeQueued) return;
+            viewerResizeQueued = true;
+            requestAnimationFrame(() => {
+                viewerResizeQueued = false;
+                try { currentViewer && currentViewer.resize(); } catch (e) {}
+            });
+        }
+
+        function setFullscreenChrome(on) {
+            document.getElementById('fsChrome').classList.toggle('hidden', !on);
+            viewerStage().classList.toggle('fs-active', on);
+            const btn = document.getElementById('fullscreenBtn');
+            if (btn) btn.setAttribute('aria-pressed', on ? 'true' : 'false');
+        }
+
+        function setFallbackFullscreen(on) {
+            fallbackFullscreen = on;
+            document.getElementById('viewerModal').classList.toggle('fs-fallback', on);
+            document.body.classList.toggle('overflow-hidden', on);
+            setFullscreenChrome(viewerIsFullscreen());
+            queueViewerResize();
+        }
+
+        function onFullscreenChange() {
+            setFullscreenChrome(viewerIsFullscreen());
+            queueViewerResize();
+        }
+
+        function enterFullscreen() {
+            if (!currentViewer) return;
+            const stage = viewerStage();
+            const req = stage.requestFullscreen || stage.webkitRequestFullscreen || stage.webkitRequestFullScreen;
+            if (!req) {
+                setFallbackFullscreen(true);
+                return;
+            }
+            let pending;
+            try {
+                pending = req.call(stage);
+            } catch (err) {
+                setFallbackFullscreen(true);
+                return;
+            }
+            const useFallback = () => {
+                if (!viewerIsFullscreen()) setFallbackFullscreen(true);
+            };
+            if (pending && typeof pending.then === 'function') {
+                pending.then(() => queueViewerResize()).catch(() => setFallbackFullscreen(true));
+            } else {
+                setTimeout(useFallback, 250);
+            }
+        }
+
+        function leaveFullscreen() {
+            if (fallbackFullscreen) {
+                setFallbackFullscreen(false);
+                return;
+            }
+            if (nativeFullscreenElement() !== viewerStage()) return;
+            const exit = document.exitFullscreen || document.webkitExitFullscreen || document.webkitCancelFullScreen;
+            if (!exit) {
+                setFallbackFullscreen(false);
+                return;
+            }
+            const pending = exit.call(document);
+            if (pending && pending.catch) pending.catch(() => {});
+        }
+
+        function captureFilename(date) {
+            const d = date || new Date();
+            const p = (n) => String(n).padStart(2, '0');
+            return `air360-${d.getFullYear()}${p(d.getMonth() + 1)}${p(d.getDate())}-${p(d.getHours())}${p(d.getMinutes())}${p(d.getSeconds())}.png`;
+        }
+
+        function dataUrlToBlob(dataUrl) {
+            const parts = dataUrl.split(',');
+            const mime = (parts[0].match(/:(.*?);/) || [])[1] || 'image/png';
+            const bin = atob(parts[1]);
+            const bytes = new Uint8Array(bin.length);
+            for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+            return new Blob([bytes], { type: mime });
+        }
+
+        function prefersShareSheet() {
+            const ua = navigator.userAgent || '';
+            return /iPad|iPhone|iPod/.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+        }
+
+        function captureDataUrl() {
+            if (!currentViewer || !currentViewer.isLoaded() || !currentViewer.getRenderer) return '';
+            currentViewer.resize();
+            const renderer = currentViewer.getRenderer();
+            if (!renderer || !renderer.render) return '';
+            const url = renderer.render(
+                currentViewer.getPitch() * Math.PI / 180,
+                currentViewer.getYaw() * Math.PI / 180,
+                currentViewer.getHfov() * Math.PI / 180,
+                { roll: 0, returnImage: true }
+            );
+            return typeof url === 'string' ? url : '';
+        }
+
+        function flashSaved(message) {
+            const flash = document.getElementById('viewerFlash');
+            const note = document.getElementById('viewerSaved');
+            if (note) note.textContent = message;
+            flash?.classList.add('is-on');
+            note?.classList.add('is-on');
+            setTimeout(() => flash?.classList.remove('is-on'), 160);
+            setTimeout(() => {
+                note?.classList.remove('is-on');
+                if (note) note.textContent = '';
+            }, 1200);
+        }
+
+        function downloadBlob(blob, name) {
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = name;
+            link.rel = 'noopener';
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+            setTimeout(() => URL.revokeObjectURL(url), 4000);
+        }
+
+        function openCaptureTab(blob) {
+            const url = URL.createObjectURL(blob);
+            const opened = window.open(url, '_blank', 'noopener');
+            if (!opened) {
+                const link = document.createElement('a');
+                link.href = url;
+                link.target = '_blank';
+                link.rel = 'noopener';
+                document.body.appendChild(link);
+                link.click();
+                link.remove();
+            }
+        }
+
+        function saveView() {
+            let dataUrl = '';
+            try {
+                dataUrl = captureDataUrl();
+            } catch (err) {
+                dataUrl = '';
+            }
+            if (!dataUrl) {
+                flashSaved('Could not save this view');
+                return;
+            }
+            const blob = dataUrlToBlob(dataUrl);
+            const name = captureFilename();
+            const file = new File([blob], name, { type: 'image/png' });
+            flashSaved('Saved');
+            if (prefersShareSheet()) {
+                if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                    navigator.share({ files: [file], title: name }).catch((err) => {
+                        if (err && err.name === 'AbortError') return;
+                        openCaptureTab(blob);
+                    });
+                    return;
+                }
+                openCaptureTab(blob);
+                return;
+            }
+            downloadBlob(blob, name);
+        }
+
+        // Pannellum reads the canvas after drawing. Keeping the buffer lets that read see the frame.
+        function keepWebGLDrawingBuffer() {
+            const orig = HTMLCanvasElement.prototype.getContext;
+            if (orig.__air360Patched) return;
+            function patched(type, attrs) {
+                if (typeof type === 'string' && type.indexOf('webgl') !== -1) {
+                    attrs = Object.assign({}, attrs || {}, { preserveDrawingBuffer: true });
+                }
+                return orig.call(this, type, attrs);
+            }
+            patched.__air360Patched = true;
+            HTMLCanvasElement.prototype.getContext = patched;
+        }
+
         function closeViewer() {
+            if (viewerIsFullscreen()) leaveFullscreen();
             const modal = document.getElementById('viewerModal');
             if (currentViewer) { try { currentViewer.destroy(); } catch(e){} currentViewer = null; }
             setAutoRotate(false);
+            setFallbackFullscreen(false);
             modal.classList.remove('flex');
             modal.classList.add('hidden');
             currentPhoto = null;
@@ -687,10 +938,24 @@
             updateStorageIndicator();
             updateStats();
 
+            keepWebGLDrawingBuffer();
+            document.addEventListener('fullscreenchange', onFullscreenChange);
+            document.addEventListener('webkitfullscreenchange', onFullscreenChange);
             document.addEventListener('keydown', (e) => {
-                if (e.key === 'Escape' && !document.getElementById('viewerModal').classList.contains('hidden')) {
-                    closeViewer();
+                if (e.key !== 'Escape') return;
+                const modal = document.getElementById('viewerModal');
+                if (!modal || modal.classList.contains('hidden')) return;
+                if (fallbackFullscreen) {
+                    e.preventDefault();
+                    setFallbackFullscreen(false);
+                    return;
                 }
+                if (nativeFullscreenElement() === viewerStage()) {
+                    e.preventDefault();
+                    leaveFullscreen();
+                    return;
+                }
+                closeViewer();
             });
 
             console.log('%c[Air360 v3] Ready — Full images stored in IndexedDB for instant viewing', 'color:#64748b');

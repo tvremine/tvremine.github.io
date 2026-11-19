@@ -9,12 +9,14 @@ Choosing a photo card opens a full-screen dialog with the photo name, its size, 
 - `viewer-drag` turns the view when the user drags across it.
 - `viewer-reset` animates back to yaw 0, pitch 0.
 - `viewer-autorotate` starts and stops continuous rotation. The button turns green and its label changes to "Stop" while rotating.
-- `viewer-close` closes from the close button, the Escape key, and a click on the dark backdrop. Every close path also turns Auto Rotate off, so the next open starts with the button back to "Auto Rotate".
+- `viewer-close` closes from the close button, the Escape key, and a click on the dark backdrop. Every close path also turns Auto Rotate off, so the next open starts with the button back to "Auto Rotate". Escape leaves full screen first and only closes the viewer when the picture is not full screen.
+- `viewer-fullscreen` fills the screen with the current picture. The button is "Full screen". In full screen the picture shows "Exit full screen" and "Save view". Escape or Exit returns to the dialog.
+- `viewer-save` is available in full screen. "Save view" downloads `air360-YYYYMMDD-HHMMSS.png` of the current picture only, then shows "Saved".
 
 ## How to get to it (user POV)
 
 - Import a photo, then choose its card.
-- Inside the dialog, use the Reset and Auto Rotate buttons in the header, or drag across the panorama.
+- Inside the dialog, use the Reset, Auto Rotate, and Full screen buttons in the header, or drag across the panorama. In full screen, use Exit full screen and Save view.
 - Close with the arrow button at the top right, the Escape key, or a click outside the dialog.
 
 ## Driving it with drive.sh
