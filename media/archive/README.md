@@ -40,4 +40,16 @@ git mv media/archive/work-neighborhood-2026-11-18.jpg media/work-neighborhood.jp
 
 Point the tile at `/media/work-neighborhood.jpg` again. Keep the title “Tree streets” and the location “Perry Township”. Restore the alt text “Golden-hour aerial of a tree-lined neighborhood.”
 
+## Lawn reception tile
+
+The Work page tile “Lawn reception / Central Indiana” (`work/index.html`, `data-item="reception"`) used `/media/events.jpg`. That tile was retired on 2026-11-19 and now shows a ballroom general session at `/media/work-corporate-event.jpg`, titled “Corporate event / JW Marriott.”
+
+`/media/events.jpg` was not removed. It is still the live photo for:
+
+- Homepage service card “Events & production” (`index.html`)
+- Homepage selected-work card “Lawn reception / Central Indiana” (`index.html`)
+- Services page “Events & production” row (`services/index.html`, `#events`)
+
+To put the Work tile back, point it at `/media/events.jpg` again. Restore the title “Lawn reception”, the location “Central Indiana”, and the alt text “Overhead of an evening outdoor reception.”
+
 Do not add an image or link that points at `media/archive/`.
