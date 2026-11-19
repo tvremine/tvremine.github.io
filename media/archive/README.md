@@ -52,4 +52,16 @@ The Work page tile “Lawn reception / Central Indiana” (`work/index.html`, `d
 
 To put the Work tile back, point it at `/media/events.jpg` again. Restore the title “Lawn reception”, the location “Central Indiana”, and the alt text “Overhead of an evening outdoor reception.”
 
+## work-stadium-2026-11-18.jpg
+
+Work page tile “Venue campus / Indianapolis” (`work/index.html`, `data-item="stadium"`, shown at `/media/work-stadium.jpg`). Dusk aerial of a stadium and convention halls. Only that tile used the file. Replaced on 2026-11-19 with a convention-hall awards dinner, now at `/media/work-partner-event.jpg`, titled “Partner event / St. Louis.”
+
+To put that tile back:
+
+```bash
+git mv media/archive/work-stadium-2026-11-18.jpg media/work-stadium.jpg
+```
+
+Point the tile at `/media/work-stadium.jpg` again. Restore the title “Venue campus”, the location “Indianapolis”, and the alt text “Dusk aerial of a stadium and convention halls.”
+
 Do not add an image or link that points at `media/archive/`.
