@@ -28,4 +28,16 @@ git mv media/archive/work-river-2026-11-18.jpg media/work-river.jpg
 
 Point the tile at `/media/work-river.jpg` again. Restore the title “Park bend”, the location “White River”, and the alt text “Sunrise aerial of a river curving through a park.”
 
+## work-neighborhood-2026-11-18.jpg
+
+Work page tile “Tree streets / Perry Township” (`work/index.html`, `data-item="neighborhood"`, shown at `/media/work-neighborhood.jpg`). Golden-hour aerial of a tree-lined neighborhood. Replaced on 2026-11-19 with a golden-hour aerial of a Perry Township subdivision, now at `/media/work-perry-township.jpg`. No other page used this file.
+
+To put that tile back:
+
+```bash
+git mv media/archive/work-neighborhood-2026-11-18.jpg media/work-neighborhood.jpg
+```
+
+Point the tile at `/media/work-neighborhood.jpg` again. Keep the title “Tree streets” and the location “Perry Township”. Restore the alt text “Golden-hour aerial of a tree-lined neighborhood.”
+
 Do not add an image or link that points at `media/archive/`.
